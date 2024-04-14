@@ -153,16 +153,6 @@ async def item(id: str):
         else:
             return {"404 ERROR": "Order doesn't exist! Please check your input!"}
 
-# class ItemType(Base):
-#     __tablename__ = 'ItemTypes'
-#
-#     id = Column(Integer, primary_key=True, autoincrement=True, comment="自增主键")
-#     category_id = Column(Integer, ForeignKey('Categories.id'), comment="C 表外键约束，产品类别")
-#     name = Column(String(20), comment="产品名称")
-#     description = Column(String(256), comment="产品描述")
-#     base_price = Column(Float, comment="产品基础价格")
-#     sale_percent = Column(Float, comment="产品打折情况")
-
 #-----SEETINGS------
 @app.get("/settings")
 async def all_settings(key: str):
