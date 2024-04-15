@@ -2,6 +2,9 @@ from fastapi import FastAPI
 from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey, MetaData, select
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from pydantic import BaseModel
+from typing import Union
+import requests
 
 # create the object of FastAPI
 app = FastAPI()
@@ -65,6 +68,56 @@ async def category(id: str):
         else:
             return {"404 ERROR": "Order doesn't exist! Please check your input!"}
 
+# POST/PATCH /category
+# Create a new (POST) or edit an existing (PATCH) category by ID.
+# Request format:
+# 	{Category / Partial Category}
+# For POST, there must not be an ID. For PATCH, there must be an ID to identify the Category to edit.
+# Response format:
+# 	If successful: 200 OK application/json
+# 		{Category}
+# 	If unsuccessful: 404 Not Found / 401 Bad Request
+class post_Category(BaseModel):
+    name: str
+
+@app.post("/category")
+async def post_category(new_category: post_Category):
+    is_exist = session.query(Categories).filter_by(name=new_category.name).first()
+    if is_exist:
+        return {"message": "This Category has already EXIST!"}
+    else:
+        session.execute(Categories.insert().values(name=new_category.name))    # insert new data
+        session.commit()
+        add = session.query(Categories).filter_by(name=new_category.name).first()
+        return add
+
+# class patch_Category(BaseModel):
+#     id: int
+#     name: str | None = None
+#
+# @app.patch("/category")
+# async def patch_category(change_category: patch_Category):
+#     return change_category
+
+# DELETE /category
+# Delete a category by its ID.
+# Request format:
+# 	{
+# 		“id”: int, id for the Category to delete
+# 	}
+# Response format: 200 OK / 401 Bad Request / 404 Not Found
+class delete_Category(BaseModel):
+    id: int
+
+@app.delete("/category")
+async def delete_category(del_category: delete_Category):
+    is_exist = session.query(Categories).filter_by(id=del_category.id).first()
+    if is_exist:
+        return 11
+    else:
+        return {"message": "This Category does NOT EXIST!"}
+
+
 #-----TAGS------
 # GET /tags
 # List all tags.
@@ -100,6 +153,32 @@ async def tag(id: str):
             return tag
         else:
             return {"404 ERROR": "Order doesn't exist! Please check your input!"}
+
+
+# POST/PATCH /tag
+# Create a new (POST) or edit an existing (PATCH) tag by ID.
+# Request format:
+# 	{Tag / Partial Tag}
+# For POST, there must not be an ID. For PATCH, there must be an ID to identify the Tag to edit.
+# Response format:
+# 	If successful: 200 OK application/json
+# 		{Tag}
+# 	If unsuccessful: 404 Not Found / 401 Bad Request
+class post_Tag(BaseModel):
+    name: str
+    color: str
+
+@app.post("/tag")
+async def post_tag(new_tag: post_Tag):
+    is_exist = session.query(Tags).filter_by(name=new_tag.name).first()
+    if is_exist:
+        return {"message": "This Category has already EXIST!"}
+    else:
+        session.execute(Tags.insert().values(name=new_tag.name, color=new_tag.color))    # insert new data
+        session.commit()
+        add = session.query(Tags).filter_by(name=new_tag.name).first()
+        return add
+
 
 #-----ITEMTYPES------
 # GET /items
@@ -153,33 +232,80 @@ async def item(id: str):
         else:
             return {"404 ERROR": "Order doesn't exist! Please check your input!"}
 
-# class ItemType(Base):
-#     __tablename__ = 'ItemTypes'
-#
-#     id = Column(Integer, primary_key=True, autoincrement=True, comment="自增主键")
-#     category_id = Column(Integer, ForeignKey('Categories.id'), comment="C 表外键约束，产品类别")
-#     name = Column(String(20), comment="产品名称")
-#     description = Column(String(256), comment="产品描述")
-#     base_price = Column(Float, comment="产品基础价格")
-#     sale_percent = Column(Float, comment="产品打折情况")
-
 #-----SEETINGS------
+# GET /settings
+# Get all settings values.
+# Request format: Empty
+# Response format:
+# 	If successful: 200 OK application/json
+# 		{“key1”: “value1”, “key2”: “value2”, “key3”: “value3”}
+# 	If unsuccessful: 401 Bad Request application/json
+# 		{
+#           “message”: “A short message describing the error”
+#       }
+
+# GET /settings
+# Get the value of a specific settings key.
+# Request format (query parameters):
+# 	key: string, corresponding to the setting the get
+# Response format:
+# 	If successful: 200 OK application/json
+# 		A string value, representing the value of the corresponding setting.
+# 	If not found: 404 Not Found
+# 	If otherwise unsuccessful: 401 Bad Request application/json
+# 		{
+#           “message”: “A short message describing the error”
+#       }
+
 @app.get("/settings")
-async def all_settings(key: str):
+async def tags():
+    # get datas
+    results = engine.execute(Settings.select())
+    # convert format to json, then return
+    formatted_results = [{"id": row.id, "item": row.item, "value": row.value} for row in results]
+    return formatted_results
+
+@app.get("/setting")
+async def all_settings(item: str):
     # SECTION 1: GET ALL SETTINGS
-    if (key == ''):    # correspond link that format like /settings?key=
-        # get datas
-        results = engine.execute(Settings.select())
-        # convert format to json, then return
-        formatted_results = [{"key": row.item, "value": row.value} for row in results]
-        return formatted_results
+    # if (item == ''):    # correspond link that format like /settings?key=
+    #     # get datas
+    #     results = engine.execute(Settings.select())
+    #     # convert format to json, then return
+    #     formatted_results = [{"item": row.item, "value": row.value} for row in results]
+    #     return formatted_results
     # SECTION 2: GET ONE PARTICULAR SETTING THAT SUBMIT BY GET METHOD
+    if item == '':
+        return {"message": "ITEM can't be EMPTY!"}
     else:    # correspond link that format like /settings?key=value
-        query = session.query(Settings).filter_by(item=key).first()    # search if key exist
+        query = session.query(Settings).filter_by(item=item).first()    # search if key exist
         if query:    # if key exist
             return query.value
         else:    # else
             return {"404 ERROR": "Key doesn't exist! Please check your input!"}
+
+# POST /settings
+# Update the value of a setting.
+# Request format: application/json
+# 	{
+# 		“key”: string, key for the SettingsItem to create or update,
+# 		“value”: string, the value to update the SettingsItem to
+# 	}
+# Response format: 200 OK / 401 Bad Request
+class post_Setting(BaseModel):
+    item: str
+    value: str
+
+@app.post("/setting")
+def post_Setting(new_setting: post_Setting):
+    is_exist = session.query(Settings).filter_by(item=new_setting.item).first()
+    if is_exist:
+        return {"message": "This Setting has already EXIST!"}
+    else:
+        session.execute(Settings.insert().values(item=new_setting.item, value=new_setting.value))  # insert new data
+        session.commit()
+        add = session.query(Settings).filter_by(item=new_setting.item).first()
+        return add
 
 #-----ORDERS------
 # GET /order
@@ -202,28 +328,41 @@ async def specific_order(id: str):
         order_content = session.query(Orders).filter_by(id=int(id)).first()
         if order_content:
             itemtypes = []
-            # items
             ordered_items_ids = session.query(Orders_OrderedItems).filter_by(order_id=int(id)).all()
             for ordered_item_id in ordered_items_ids:
                 ordered_item = session.query(OrderedItems).filter_by(id=ordered_item_id.ordereditem_id).first()
                 item = session.query(ItemTypes).filter_by(id=ordered_item.item_type_id).first()
+                # some attributes
                 category = session.query(Categories).filter_by(id=item.category_id).first()
+                amount = ordered_item.amount
+
+                # options that chosen by user
+                option_items = session.query(OrderedItems_OptionItems).filter_by(ordered_item_id=ordered_item_id.ordereditem_id).all()
+                applied_options = []
+                for option_item in option_items:
+                    applied_option = session.query(OptionItems).filter_by(id=option_item.option_item_id).first()
+                    type = session.query(OptionTypes).filter_by(id=applied_option.type_id).first()
+                    applied_option_format = {"id": applied_option.id, "name": applied_option.name, "type": type}
+                    applied_options.append(applied_option_format)
+
+                # tags
                 tags = session.query(ItemTypes_Tags).filter_by(item=item.id).all()
                 tags_list = []
                 for onetag in tags:
                     tag_name = session.query(Tags).filter_by(id=onetag.tag).first()
                     tags_list.append(tag_name)
                 options = session.query(OrderedItems_OptionItems).filter_by(ordered_item_id=ordered_item.item_type_id).all()
+
                 # options
                 options_list = []
                 for option in options:
                     option_content = session.query(OptionItems).filter_by(id=option.option_item_id).first()
                     option_type = session.query(OptionTypes).filter_by(id=option_content.type_id).first()
                     options_list.append(option_type)
-                    itemtype = {"id": item.id, "category_id": category, "name": item.name,
-                            "tags": tags_list, "description": item.description, "options": options_list,
+                    itemtype = {"id": item.id, "category_id": category, "name": item.name, "amount": amount,
+                            "tags": tags_list, "description": item.description, "options": options_list, "applied_options": applied_options,
                             "base_price": item.base_price, "sale_percent": item.sale_percent}
-                    itemtypes.append(itemtype)
+                itemtypes.append(itemtype)
             order = {"id": order_content.id,
                       "number": order_content.number,
                       "items": itemtypes,
@@ -243,8 +382,44 @@ async def specific_order(id: str):
 # [List of Order]
 @app.get("/orders")
 async def orders():
+    orders = []
     results = engine.execute(Orders.select())
-    return results
+    for row in results:
+        itemtypes = []
+        order_content = session.query(Orders).filter_by(id=row.id).first()
+        # items
+        ordered_items_ids = session.query(Orders_OrderedItems).filter_by(order_id=row.id).all()
+        for ordered_item_id in ordered_items_ids:
+            ordered_item = session.query(OrderedItems).filter_by(id=ordered_item_id.ordereditem_id).first()
+            item = session.query(ItemTypes).filter_by(id=ordered_item.item_type_id).first()
+            category = session.query(Categories).filter_by(id=item.category_id).first()
+            tags = session.query(ItemTypes_Tags).filter_by(item=item.id).all()
+            tags_list = []
+            for onetag in tags:
+                tag_name = session.query(Tags).filter_by(id=onetag.tag).first()
+                tags_list.append(tag_name)
+            options = session.query(OrderedItems_OptionItems).filter_by(ordered_item_id=ordered_item.item_type_id).all()
+            # options
+            options_list = []
+            for option in options:
+                option_content = session.query(OptionItems).filter_by(id=option.option_item_id).first()
+                option_type = session.query(OptionTypes).filter_by(id=option_content.type_id).first()
+                options_list.append(option_type)
+                itemtype = {"id": item.id, "category_id": category, "name": item.name,
+                            "tags": tags_list, "description": item.description, "options": options_list,
+                            "base_price": item.base_price, "sale_percent": item.sale_percent}
+            itemtypes.append(itemtype)
+            order = {"id": order_content.id,
+                 "number": order_content.number,
+                 "items": itemtypes,
+                 "total_price": order_content.total_price,
+                 "status": order_content.status,
+                 "create_time": order_content.created_time,
+                 "contact_name": order_content.contact_name,
+                 "contact_room": order_content.contact_room}
+        orders.append(order)
+    return orders
+            # return options
 
 
 #-----OPTIONTYPES------
@@ -283,6 +458,32 @@ async def optiontype(id: str):
         else:
             return {"404 ERROR": "Order doesn't exist! Please check your input!"}
 
+# POST/PATCH /optiontype
+# Create a new (POST) or edit an existing (PATCH) OptionType by ID.
+# Request format:
+# 	{OptionType / Partial OptionType}
+# For POST, there must not be an ID. For PATCH, there must be an ID to identify the OptionType to edit.
+# Response format:
+# 	If successful: 200 OK application/json
+# 		{OptionType}
+# 	If unsuccessful: 404 Not Found / 401 Bad Request
+# class post_OptionType(BaseModel):
+#     name: str
+#     color: str
+#
+# @app.post("/tag")
+# async def post_tag(new_tag: post_Tag):
+#     is_exist = session.query(Tags).filter_by(name=new_tag.name).first()
+#     if is_exist:
+#         return {"message": "This Category has already EXIST!"}
+#     else:
+#         session.execute(Tags.insert().values(name=new_tag.name, color=new_tag.color))    # insert new data
+#         session.commit()
+#         add = session.query(Tags).filter_by(name=new_tag.name).first()
+#         return add
+
+
+#-----OPTIONITEMS------
 # GET /optionitems
 # List all option items.
 # Request format: Empty
