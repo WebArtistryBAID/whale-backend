@@ -60,7 +60,7 @@ async def category(id: str):
         category_content = session.query(Categories).filter_by(id=int(id)).first()
         if category_content:
             # convert format to json, then return
-            category = [{"id": category_content.id, "name": category_content.name}]
+            category = {"id": category_content.id, "name": category_content.name}
             return category
         else:
             return {"404 ERROR": "Order doesn't exist! Please check your input!"}
@@ -96,7 +96,7 @@ async def tag(id: str):
         tag_content = session.query(Tags).filter_by(id=int(id)).first()
         if tag_content:
             # convert format to json, then return
-            tag = [{"id": tag_content.id, "name": tag_content.name, "color": tag_content.color}]
+            tag = {"id": tag_content.id, "name": tag_content.name, "color": tag_content.color}
             return tag
         else:
             return {"404 ERROR": "Order doesn't exist! Please check your input!"}
@@ -148,10 +148,20 @@ async def item(id: str):
                 tag_name = session.query(Tags).filter_by(id=onetag.tag).first()
                 tags_list.append(tag_name)
             # convert format to json, then return
-            itemtype = [{"id": itemtype_content.id, "category_id":category, "name": itemtype_content.name, "tags": tags_list, "description": itemtype_content.description, "base_price": itemtype_content.base_price, "sale_percent": itemtype_content.sale_percent}]
+            itemtype = {"id": itemtype_content.id, "category_id":category, "name": itemtype_content.name, "tags": tags_list, "description": itemtype_content.description, "base_price": itemtype_content.base_price, "sale_percent": itemtype_content.sale_percent}
             return itemtype
         else:
             return {"404 ERROR": "Order doesn't exist! Please check your input!"}
+
+# class ItemType(Base):
+#     __tablename__ = 'ItemTypes'
+#
+#     id = Column(Integer, primary_key=True, autoincrement=True, comment="自增主键")
+#     category_id = Column(Integer, ForeignKey('Categories.id'), comment="C 表外键约束，产品类别")
+#     name = Column(String(20), comment="产品名称")
+#     description = Column(String(256), comment="产品描述")
+#     base_price = Column(Float, comment="产品基础价格")
+#     sale_percent = Column(Float, comment="产品打折情况")
 
 #-----SEETINGS------
 @app.get("/settings")
@@ -171,7 +181,19 @@ async def all_settings(key: str):
         else:    # else
             return {"404 ERROR": "Key doesn't exist! Please check your input!"}
 
-# get a specific order in json
+#-----ORDERS------
+# GET /order
+# Get a specific Order object by ID.
+# Request format (query parameters):
+# 	id: the integer corresponding to the ID of the Order
+# Response format:
+# 	If successful: 200 OK application/json
+# 		{Order (with all contents)}
+# 	If not found: 404 Not Found
+# 	If otherwise unsuccessful: 401 Bad Request application/json
+# 		{
+#           “message”: “A short message describing the error”
+#       }
 @app.get("/order")
 async def specific_order(id: str):
     if (id == ''):    # correspond link that format like /order?id=
@@ -179,38 +201,51 @@ async def specific_order(id: str):
     else:    # correspond link that format like /order?id=1102
         order_content = session.query(Orders).filter_by(id=int(id)).first()
         if order_content:
-            order = [{"order_id": order_content.id,
+            itemtypes = []
+            # items
+            ordered_items_ids = session.query(Orders_OrderedItems).filter_by(order_id=int(id)).all()
+            for ordered_item_id in ordered_items_ids:
+                ordered_item = session.query(OrderedItems).filter_by(id=ordered_item_id.ordereditem_id).first()
+                item = session.query(ItemTypes).filter_by(id=ordered_item.item_type_id).first()
+                category = session.query(Categories).filter_by(id=item.category_id).first()
+                tags = session.query(ItemTypes_Tags).filter_by(item=item.id).all()
+                tags_list = []
+                for onetag in tags:
+                    tag_name = session.query(Tags).filter_by(id=onetag.tag).first()
+                    tags_list.append(tag_name)
+                options = session.query(OrderedItems_OptionItems).filter_by(ordered_item_id=ordered_item.item_type_id).all()
+                # options
+                options_list = []
+                for option in options:
+                    option_content = session.query(OptionItems).filter_by(id=option.option_item_id).first()
+                    option_type = session.query(OptionTypes).filter_by(id=option_content.type_id).first()
+                    options_list.append(option_type)
+                    itemtype = {"id": item.id, "category_id": category, "name": item.name,
+                            "tags": tags_list, "description": item.description, "options": options_list,
+                            "base_price": item.base_price, "sale_percent": item.sale_percent}
+                    itemtypes.append(itemtype)
+            order = {"id": order_content.id,
                       "number": order_content.number,
+                      "items": itemtypes,
                       "total_price": order_content.total_price,
                       "status": order_content.status,
                       "create_time": order_content.created_time,
                       "contact_name": order_content.contact_name,
-                      "contact_room": order_content.contact_room}]
-
-            ordered_items_ids = session.query(Orders_OrderedItems).filter_by(order_id=int(id)).all()
-            for ordered_item_id in ordered_items_ids:
-                ordered_item = session.query(OrderedItems).filter_by(id=ordered_item_id.ordereditem_id).first()
-                item_type = session.query(ItemTypes).filter_by(id=ordered_item.item_type_id).first()
-                item_format = [{"name": item_type.name,
-                                "description": item_type.description,
-                                "base_price": item_type.base_price,
-                                "sale_percent": item_type.sale_percent}]
-
-                options = session.query(OrderedItems_OptionItems).filter_by(id=ordered_item.item_type_id).all()
-                for option in options:
-                    option_content = session.query(OptionItems).filter_by(id=option.option_item_id).first()
-                    option_type = session.query(OptionTypes).filter_by(id=option_content.type_id).first()
-                    option_format = [{"name": option_type.name,
-                                      "name": option_content.name,
-                                      "price_change": option_content.price_change}]
-
-                    one_item_format = [{"item": item_format,
-                                        "option": option_format,
-                                        "amount": ordered_item.amount}]
-                    order.append(one_item_format)
+                      "contact_room": order_content.contact_room}
             return order
         else:
             return {"404 ERROR": "Order doesn't exist! Please check your input!"}
+
+# GET /orders
+# List all orders.
+# Request format: Empty
+# Response format: 200 OK application/json
+# [List of Order]
+@app.get("/orders")
+async def orders():
+    results = engine.execute(Orders.select())
+    return results
+
 
 #-----OPTIONTYPES------
 # GET /optiontypes
@@ -243,7 +278,7 @@ async def optiontype(id: str):
         optiontype_content = session.query(Tags).filter_by(id=int(id)).first()
         if optiontype_content:
             # convert format to json, then return
-            tag = [{"id": optiontype_content.id, "name": optiontype_content.name}]
+            tag = {"id": optiontype_content.id, "name": optiontype_content.name}
             return tag
         else:
             return {"404 ERROR": "Order doesn't exist! Please check your input!"}
@@ -283,7 +318,7 @@ async def optionitem(id: str):
         if optionitem_content:
             optiontype = session.query(OptionTypes).filter_by(id=optionitem_content.id).first()
             # convert format to json, then return
-            optionitem = [{"id": optionitem_content.id, "type_id":optiontype, "name": optionitem_content.name, "price_change": optionitem_content.price_change}]
+            optionitem = {"id": optionitem_content.id, "type_id":optiontype, "name": optionitem_content.name, "price_change": optionitem_content.price_change}
             return optionitem
         else:
             return {"404 ERROR": "Order doesn't exist! Please check your input!"}
