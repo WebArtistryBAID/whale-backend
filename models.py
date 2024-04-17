@@ -22,6 +22,7 @@ class Tag(Base):
     color = Column(String(6))
 
 
+# FIXME Fix cycle here
 class OptionItem(Base):
     __tablename__ = 'optionitems'
 
