@@ -26,7 +26,10 @@ class OptionItemSchema(BaseModel):
 class OptionTypeSchema(BaseModel):
     id: int
     name: str
-    defaultId: Optional[int] = None
+    default: OptionItemSchema
+
+    class Config:
+        orm_mode = True
 
 
 class ItemTypeSchema(BaseModel):
@@ -36,17 +39,23 @@ class ItemTypeSchema(BaseModel):
     image: str
     description: str
     shortDescription: str
-    options: List[int]
+    options: List[OptionTypeSchema]
     basePrice: Decimal
     salePercent: float
+
+    class Config:
+        orm_mode = True
 
 
 class OrderedItemSchema(BaseModel):
     id: int
     orderId: int
-    itemTypeId: Optional[int] = None
-    appliedOptions: List[int]
+    itemType: ItemTypeSchema
+    appliedOptions: List[OptionItemSchema]
     amount: int
+
+    class Config:
+        orm_mode = True
 
 
 class OrderSchema(BaseModel):
@@ -57,7 +66,10 @@ class OrderSchema(BaseModel):
     createdTime: datetime
     contactName: str
     contactRoom: str
-    items: List[int]
+    items: List[OrderedItemSchema]
+
+    class Config:
+        orm_mode = True
 
 
 class SettingItemSchema(BaseModel):
