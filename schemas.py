@@ -58,6 +58,15 @@ class OrderedItemSchema(BaseModel):
         orm_mode = True
 
 
+class OrderedItemCreateSchema(BaseModel):
+    itemType: ItemTypeSchema
+    appliedOptions: List[OptionItemSchema]
+    amount: int
+
+    class Config:
+        orm_mode = True
+
+
 class OrderSchema(BaseModel):
     id: int
     totalPrice: Decimal
@@ -72,6 +81,22 @@ class OrderSchema(BaseModel):
         orm_mode = True
 
 
+class OrderCreateSchema(BaseModel):
+    items: List[OrderedItemCreateSchema]
+    contactName: str
+    contactRoom: str
+
+
+class OrderEstimateSchema(BaseModel):
+    time: int
+    orders: int
+
+
 class SettingItemSchema(BaseModel):
     key: str
     value: str
+
+
+class GenericErrorSchema(BaseModel):
+    key: int
+    message: str
