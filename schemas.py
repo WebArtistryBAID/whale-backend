@@ -29,7 +29,7 @@ class OptionTypeSchema(BaseModel):
     default: OptionItemSchema
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ItemTypeSchema(BaseModel):
@@ -44,7 +44,7 @@ class ItemTypeSchema(BaseModel):
     salePercent: float
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class OrderedItemSchema(BaseModel):
@@ -55,16 +55,16 @@ class OrderedItemSchema(BaseModel):
     amount: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class OrderedItemCreateSchema(BaseModel):
-    itemType: ItemTypeSchema
-    appliedOptions: List[OptionItemSchema]
+    itemType: int
+    appliedOptions: List[int]
     amount: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class OrderSchema(BaseModel):
@@ -78,7 +78,7 @@ class OrderSchema(BaseModel):
     items: List[OrderedItemSchema]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class OrderCreateSchema(BaseModel):
@@ -98,5 +98,4 @@ class SettingItemSchema(BaseModel):
 
 
 class GenericErrorSchema(BaseModel):
-    key: int
     message: str

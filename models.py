@@ -63,7 +63,7 @@ class ItemType(Base):
     shortDescription = Column(String(256))
     options = relationship('OptionType', secondary=itemOptionAssociation)
     basePrice = Column(DECIMAL(5, 2))
-    salePercent = Column(Float)
+    salePercent = Column(DECIMAL(5, 2))
 
 
 orderedItemOptionAssoc = Table('ordered_item_option_association', Base.metadata,

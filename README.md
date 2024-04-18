@@ -15,5 +15,5 @@ Run `alembic revision -m "message" --autogenerate`.
 ## To run this copy
 
 * Run `alembic upgrade head` to generate development database structures.
-* Run FastAPI!
+* Run `uvicorn main:app --reload`, and you are started!
 
