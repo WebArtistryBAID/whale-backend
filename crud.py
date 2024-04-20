@@ -4,15 +4,15 @@ from decimal import Decimal, getcontext
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from models import *
-from schemas import GenericErrorSchema, OrderedItemCreateSchema, OrderCreateSchema
+from schemas import OrderedItemCreateSchema, OrderCreateSchema
 
 
 getcontext().prec = 5
 
 
-def assert_not_null(value):
+def ensure_not_none(value):
     if value is None:
-        raise HTTPException(status_code=404, detail=GenericErrorSchema(message="Not Found"))
+        raise HTTPException(status_code=404, detail="Not Found")
     return value
 
 

@@ -99,7 +99,3 @@ class OrderEstimateSchema(BaseModel):
 class SettingItemSchema(BaseModel):
     key: str
     value: str
-
-
-class GenericErrorSchema(BaseModel):
-    message: str

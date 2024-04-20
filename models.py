@@ -1,9 +1,33 @@
 import enum
 
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DECIMAL, Enum, DateTime, Table
+from sqlalchemy import Column, Integer, String, ForeignKey, DECIMAL, Enum, DateTime, Table
 from sqlalchemy.orm import relationship
 
 from database import Base
+
+
+orderedItemOptionAssoc = Table('ordered_item_option_association', Base.metadata,
+                               Column('ordered_item_id', Integer, ForeignKey('ordereditems.id', ondelete='CASCADE'),
+                                      primary_key=True),
+                               Column('option_item_id', Integer, ForeignKey('optionitems.id', ondelete='CASCADE'),
+                                      primary_key=True)
+                               )
+
+
+tagItemTypeAssoc = Table('tag_item_type_association', Base.metadata,
+                         Column('item_type_id', Integer, ForeignKey('itemtypes.id', ondelete='CASCADE'),
+                                primary_key=True),
+                         Column('tag_id', Integer, ForeignKey('tags.id', ondelete='CASCADE'),
+                                primary_key=True)
+                         )
+
+
+itemOptionAssociation = Table('item_option_association', Base.metadata,
+                              Column('item_type_id', Integer, ForeignKey('itemtypes.id', ondelete='CASCADE'),
+                                     primary_key=True),
+                              Column('option_type_id', Integer, ForeignKey('optiontypes.id', ondelete='CASCADE'),
+                                     primary_key=True)
+                              )
 
 
 class Category(Base):
@@ -28,17 +52,9 @@ class OptionItem(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     typeId = Column(Integer, ForeignKey('optiontypes.id', ondelete='CASCADE'))
-    type = relationship('OptionType', back_populates='items')
+    type = relationship('OptionType', back_populates='items', foreign_keys=[typeId])
     name = Column(String(20))
     priceChange = Column(DECIMAL(5, 2))
-
-
-itemOptionAssociation = Table('item_option_association', Base.metadata,
-                              Column('item_type_id', Integer, ForeignKey('itemtypes.id', ondelete='CASCADE'),
-                                     primary_key=True),
-                              Column('option_type_id', Integer, ForeignKey('optiontypes.id', ondelete='CASCADE'),
-                                     primary_key=True)
-                              )
 
 
 class OptionType(Base):
@@ -46,17 +62,9 @@ class OptionType(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(20))
-    items = relationship('OptionItem', back_populates='type', lazy='dynamic')
+    items = relationship('OptionItem', back_populates='type', lazy='dynamic', foreign_keys=[OptionItem.typeId])
     defaultId = Column(Integer, ForeignKey('optionitems.id', ondelete='SET NULL'))
-    default = relationship('OptionItem', foreign_keys='defaultId')
-
-
-tagItemTypeAssoc = Table('tag_item_type_association', Base.metadata,
-                         Column('item_type_id', Integer, ForeignKey('itemtypes.id', ondelete='CASCADE'),
-                                primary_key=True),
-                         Column('tag_id', Integer, ForeignKey('tags.id', ondelete='CASCADE'),
-                                primary_key=True)
-                         )
+    default = relationship('OptionItem', foreign_keys=[defaultId])
 
 
 class ItemType(Base):
@@ -73,14 +81,6 @@ class ItemType(Base):
     options = relationship('OptionType', secondary=itemOptionAssociation)
     basePrice = Column(DECIMAL(5, 2))
     salePercent = Column(DECIMAL(5, 2))
-
-
-orderedItemOptionAssoc = Table('ordered_item_option_association', Base.metadata,
-                               Column('ordered_item_id', Integer, ForeignKey('ordereditems.id', ondelete='CASCADE'),
-                                      primary_key=True),
-                               Column('option_item_id', Integer, ForeignKey('optionitems.id', ondelete='CASCADE'),
-                                      primary_key=True)
-                               )
 
 
 class OrderedItem(Base):
