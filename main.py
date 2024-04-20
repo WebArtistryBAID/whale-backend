@@ -53,12 +53,12 @@ def estimate(id: int, db: Session = Depends(get_db)):
     raise HTTPException(status_code=401, detail="TODO")
 
 
-@app.delete("/order", response_model=None)
+@app.delete("/order", response_model=bool)
 def cancel_order(id: int, db: Session = Depends(get_db)):
     order = crud.assert_not_null(crud.get_order(db, id))
     if order.status == "notStarted":
         crud.delete_order(db, order)
-        return
+        return True
     raise HTTPException(status_code=401, detail=GenericErrorSchema(message="Order already started"))
 
 
