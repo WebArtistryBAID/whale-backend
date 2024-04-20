@@ -16,20 +16,21 @@ class TagSchema(BaseModel):
     color: str
 
 
-class OptionTypeSchema(BaseModel):
+class OptionItemSchema(BaseModel):
     id: int
+    typeId: int
     name: str
-    defaultId: int
+    priceChange: Decimal
 
     class Config:
         from_attributes = True
 
 
-class OptionItemSchema(BaseModel):
+class OptionTypeSchema(BaseModel):
     id: int
-    type: OptionTypeSchema
     name: str
-    priceChange: Decimal
+    items: List[OptionItemSchema]
+    defaultId: int
 
     class Config:
         from_attributes = True
