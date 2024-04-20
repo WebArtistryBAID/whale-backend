@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 import crud
 from database import SessionLocal
+from models import Order, OrderStatus
 from schemas import *
 
 app = FastAPI()
@@ -50,7 +51,19 @@ def get_order(id: int, db: Session = Depends(get_db)):
 
 @app.get("/order/estimate", response_model=OrderEstimateSchema)
 def estimate(id: int, db: Session = Depends(get_db)):
-    raise HTTPException(status_code=401, detail="Not implemented")
+    order = crud.ensure_not_none(crud.get_order(db, id))
+    matching_orders = (db.query(Order)
+                       .filter(Order.createdTime < order.createdTime)
+                       .filter(Order.status.in_([OrderStatus.notStarted, OrderStatus.inProgress]))
+                       .all())
+    amount = 0
+    for o in matching_orders:
+        for i in o.items:
+            amount += i.amount
+    return OrderEstimateSchema(
+        time=amount * 2,
+        orders=len(matching_orders)
+    )
 
 
 @app.delete("/order", response_model=bool)
