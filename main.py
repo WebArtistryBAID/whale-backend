@@ -52,6 +52,8 @@ def get_order(id: int, db: Session = Depends(get_db)):
 @app.get("/order/estimate", response_model=OrderEstimateSchema)
 def estimate(id: int, db: Session = Depends(get_db)):
     order = crud.ensure_not_none(crud.get_order(db, id))
+    if order.status == OrderStatus.ready or order.status == OrderStatus.pickedUp:
+        raise HTTPException(status_code=401, detail="Already finished")
     matching_orders = (db.query(Order)
                        .filter(Order.createdTime < order.createdTime)
                        .filter(Order.status.in_([OrderStatus.notStarted, OrderStatus.inProgress]))
