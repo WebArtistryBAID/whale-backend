@@ -16,17 +16,20 @@ class TagSchema(BaseModel):
     color: str
 
 
-class OptionItemSchema(BaseModel):
-    id: int
-    typeId: int
-    name: str
-    priceChange: Decimal
-
-
 class OptionTypeSchema(BaseModel):
     id: int
     name: str
-    default: OptionItemSchema
+    defaultId: int
+
+    class Config:
+        from_attributes = True
+
+
+class OptionItemSchema(BaseModel):
+    id: int
+    type: OptionTypeSchema
+    name: str
+    priceChange: Decimal
 
     class Config:
         from_attributes = True
@@ -34,9 +37,10 @@ class OptionTypeSchema(BaseModel):
 
 class ItemTypeSchema(BaseModel):
     id: int
-    categoryId: int
+    category: CategorySchema
     name: str
     image: str
+    tags: List[TagSchema]
     description: str
     shortDescription: str
     options: List[OptionTypeSchema]

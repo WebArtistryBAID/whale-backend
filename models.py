@@ -51,6 +51,14 @@ class OptionType(Base):
     default = relationship('OptionItem', foreign_keys='defaultId')
 
 
+tagItemTypeAssoc = Table('tag_item_type_association', Base.metadata,
+                         Column('item_type_id', Integer, ForeignKey('itemtypes.id', ondelete='CASCADE'),
+                                primary_key=True),
+                         Column('tag_id', Integer, ForeignKey('tags.id', ondelete='CASCADE'),
+                                primary_key=True)
+                         )
+
+
 class ItemType(Base):
     __tablename__ = 'itemtypes'
 
@@ -59,6 +67,7 @@ class ItemType(Base):
     category = relationship('Category', back_populates='items')
     name = Column(String(20))
     image = Column(String)
+    tags = relationship('Tag', secondary=tagItemTypeAssoc)
     description = Column(String(256))
     shortDescription = Column(String(256))
     options = relationship('OptionType', secondary=itemOptionAssociation)
