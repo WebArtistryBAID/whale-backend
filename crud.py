@@ -73,7 +73,6 @@ def create_ordered_item(session: Session, order: int, schema: OrderedItemCreateS
     for id in schema.appliedOptions:
         ordered_item.appliedOptions.append(get_option_item(session, id))
     session.add(ordered_item)
-    session.commit()
     return ordered_item
 
 
