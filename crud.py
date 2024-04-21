@@ -44,6 +44,10 @@ def get_option_items(session: Session, optiontype_id: int):
     return session.query(OptionItem).filter(OptionItem.type_id == optiontype_id).all()
 
 
+def get_option_item(session: Session, optionitem_id: int):
+    return session.query(OptionItem).filter(OptionItem.id == optionitem_id).one_or_none()
+
+
 def get_item_types(session: Session):
     return session.query(ItemType).all()
 
@@ -66,7 +70,8 @@ def create_ordered_item(session: Session, order: int, schema: OrderedItemCreateS
         itemTypeId=schema.itemType,
         amount=schema.amount
     )
-    ordered_item.appliedOptions = [get_option_type(session, id) for id in schema.appliedOptions]
+    for id in schema.appliedOptions:
+        ordered_item.appliedOptions.append(get_option_item(session, id))
     session.add(ordered_item)
     session.commit()
     return ordered_item
@@ -83,10 +88,12 @@ def create_order(session: Session, schema: OrderCreateSchema):
         contactName=schema.contactName,
         contactRoom=schema.contactRoom
     )
-    order.items = [create_ordered_item(session, order.id, item) for item in schema.items]
+    for item in schema.items:
+        order.items.append(create_ordered_item(session, order.id, item))
     total_price = Decimal("0")
     for item in order.items:
-        total_price += item.itemType.basePrice * item.itemType.salePercent
+        item_type = get_item_type(session, item.itemTypeId)
+        total_price += item_type.basePrice * item_type.salePercent
         for option in item.appliedOptions:
             total_price += option.priceChange
         total_price *= item.amount

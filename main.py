@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
+from starlette.middleware.cors import CORSMiddleware
 
 import crud
 from database import SessionLocal
@@ -7,6 +8,10 @@ from models import Order, OrderStatus
 from schemas import *
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"]
+)
 
 
 def get_db():
