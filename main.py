@@ -54,6 +54,11 @@ def get_order(id: int, db: Session = Depends(get_db)):
     return crud.ensure_not_none(crud.get_order(db, id))
 
 
+@app.get("/order/bynumber", response_model=OrderSchema)
+def get_order(number: str, db: Session = Depends(get_db)):
+    return crud.ensure_not_none(crud.get_order_by_number(db, number))
+
+
 @app.get("/order/estimate", response_model=OrderEstimateSchema)
 def estimate(id: int | None = None, db: Session = Depends(get_db)):
     amount = 0

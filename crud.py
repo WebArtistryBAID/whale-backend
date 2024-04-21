@@ -80,6 +80,10 @@ def get_order(session: Session, order_id: int):
     return session.query(Order).filter(Order.id == order_id).one_or_none()
 
 
+def get_order_by_number(session: Session, number: str):
+    return session.query(Order).filter(Order.number == number).order_by(Order.createdTime.desc()).first()
+
+
 def create_order(session: Session, schema: OrderCreateSchema):
     order = Order(
         status=OrderStatus.notStarted,
