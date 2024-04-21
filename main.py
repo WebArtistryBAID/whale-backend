@@ -8,9 +8,13 @@ from models import Order, OrderStatus
 from schemas import *
 
 app = FastAPI()
+# Development only!
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"]
+    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allow_credentials=True,
+    allow_origins=["http://192.168.2.173:5173", "http://localhost:5173"]
 )
 
 
