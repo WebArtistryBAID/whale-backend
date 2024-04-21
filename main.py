@@ -56,10 +56,13 @@ def get_order(id: int, db: Session = Depends(get_db)):
 
 @app.get("/order/estimate", response_model=OrderEstimateSchema)
 def estimate(id: int | None = None, db: Session = Depends(get_db)):
+    amount = 0
     if id is not None:
         order = crud.ensure_not_none(crud.get_order(db, id))
         if order.status == OrderStatus.ready or order.status == OrderStatus.pickedUp:
             raise HTTPException(status_code=401, detail="Already finished")
+        for item in order.items:
+            amount += item.amount
         matching_orders = (db.query(Order)
                            .filter(Order.createdTime < order.createdTime)
                            .filter(Order.status.in_([OrderStatus.notStarted, OrderStatus.inProgress]))
@@ -69,7 +72,6 @@ def estimate(id: int | None = None, db: Session = Depends(get_db)):
                            .filter(Order.status.in_([OrderStatus.notStarted, OrderStatus.inProgress]))
                            .all())
 
-    amount = 0
     for o in matching_orders:
         for i in o.items:
             amount += i.amount
