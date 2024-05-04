@@ -72,7 +72,7 @@ class ItemType(Base):
     categoryId = Column(Integer, ForeignKey('categories.id', ondelete='CASCADE'))
     category = relationship('Category', back_populates='items')
     name = Column(String(20))
-    image = Column(String)
+    image = Column(String(1024))
     tags = relationship('Tag', secondary=tagItemTypeAssoc)
     description = Column(String(256))
     shortDescription = Column(String(256))
@@ -116,5 +116,5 @@ class Order(Base):
 class SettingItem(Base):
     __tablename__ = 'settingsitems'
 
-    key = Column(String, primary_key=True)
-    value = Column(String)
+    key = Column(String(32), primary_key=True)
+    value = Column(String(2048))
