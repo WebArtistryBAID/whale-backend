@@ -1,8 +1,8 @@
 """initial
 
-Revision ID: 60328f0c5410
+Revision ID: 85db8a9e026d
 Revises: 
-Create Date: 2024-05-04 18:49:19.713593
+Create Date: 2024-05-04 19:12:01.392985
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '60328f0c5410'
+revision: str = '85db8a9e026d'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -41,8 +41,8 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('settingsitems',
-    sa.Column('key', sa.String(), nullable=False),
-    sa.Column('value', sa.String(), nullable=True),
+    sa.Column('key', sa.String(length=32), nullable=False),
+    sa.Column('value', sa.String(length=2048), nullable=True),
     sa.PrimaryKeyConstraint('key')
     )
     op.create_table('tags',
@@ -55,7 +55,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('categoryId', sa.Integer(), nullable=True),
     sa.Column('name', sa.String(length=20), nullable=True),
-    sa.Column('image', sa.String(), nullable=True),
+    sa.Column('image', sa.String(length=1024), nullable=True),
     sa.Column('description', sa.String(length=256), nullable=True),
     sa.Column('shortDescription', sa.String(length=256), nullable=True),
     sa.Column('basePrice', sa.DECIMAL(precision=5, scale=2), nullable=True),
