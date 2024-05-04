@@ -4,4 +4,4 @@ COPY ./requirements.txt /whale-backend/
 RUN pip install --no-cache-dir --upgrade -r /whale-backend/requirements.txt
 COPY . /whale-backend/.
 EXPOSE 8000
-CMD ["uvicorn", "main:app", "--proxy-headers", "--port", "8000d "]
+CMD ["uvicorn", "main:app", "--proxy-headers", "--port", "8000"]
