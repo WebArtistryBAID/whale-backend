@@ -48,7 +48,7 @@ def upgrade() -> None:
     op.create_table('tags',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('name', sa.String(length=20), nullable=True),
-    sa.Column('color', sa.String(length=7), nullable=True),
+    sa.Column('color', sa.String(length=10), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('itemtypes',

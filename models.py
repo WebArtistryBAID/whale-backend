@@ -43,7 +43,7 @@ class Tag(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(20))
-    color = Column(String(7))
+    color = Column(String(10))
 
 
 class OptionItem(Base):
