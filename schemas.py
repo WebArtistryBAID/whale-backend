@@ -95,6 +95,8 @@ class OrderCreateSchema(BaseModel):
 class OrderEstimateSchema(BaseModel):
     time: int
     orders: int
+    number: str | None
+    status: str | None  # notStarted, inProgress, ready, or pickedUp
 
 
 class SettingItemSchema(BaseModel):
