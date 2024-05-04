@@ -1,8 +1,8 @@
 """initial
 
-Revision ID: da5383e97552
+Revision ID: 60328f0c5410
 Revises: 
-Create Date: 2024-04-20 12:01:09.284859
+Create Date: 2024-05-04 18:49:19.713593
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'da5383e97552'
+revision: str = '60328f0c5410'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -25,19 +25,9 @@ def upgrade() -> None:
     sa.Column('name', sa.String(length=12), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('optionitems',
-    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('typeId', sa.Integer(), nullable=True),
-    sa.Column('name', sa.String(length=20), nullable=True),
-    sa.Column('priceChange', sa.DECIMAL(precision=5, scale=2), nullable=True),
-    sa.ForeignKeyConstraint(['typeId'], ['optiontypes.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
-    )
     op.create_table('optiontypes',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('name', sa.String(length=20), nullable=True),
-    sa.Column('defaultId', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['defaultId'], ['optionitems.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('orders',
@@ -71,6 +61,15 @@ def upgrade() -> None:
     sa.Column('basePrice', sa.DECIMAL(precision=5, scale=2), nullable=True),
     sa.Column('salePercent', sa.DECIMAL(precision=5, scale=2), nullable=True),
     sa.ForeignKeyConstraint(['categoryId'], ['categories.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('optionitems',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('typeId', sa.Integer(), nullable=True),
+    sa.Column('name', sa.String(length=20), nullable=True),
+    sa.Column('isDefault', sa.Boolean(), nullable=False),
+    sa.Column('priceChange', sa.DECIMAL(precision=5, scale=2), nullable=True),
+    sa.ForeignKeyConstraint(['typeId'], ['optiontypes.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('item_option_association',
@@ -112,11 +111,11 @@ def downgrade() -> None:
     op.drop_table('tag_item_type_association')
     op.drop_table('ordereditems')
     op.drop_table('item_option_association')
+    op.drop_table('optionitems')
     op.drop_table('itemtypes')
     op.drop_table('tags')
     op.drop_table('settingsitems')
     op.drop_table('orders')
     op.drop_table('optiontypes')
-    op.drop_table('optionitems')
     op.drop_table('categories')
     # ### end Alembic commands ###

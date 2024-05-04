@@ -20,6 +20,7 @@ class OptionItemSchema(BaseModel):
     id: int
     typeId: int
     name: str
+    isDefault: bool
     priceChange: Decimal
 
     class Config:
@@ -30,7 +31,6 @@ class OptionTypeSchema(BaseModel):
     id: int
     name: str
     items: List[OptionItemSchema]
-    defaultId: int
 
     class Config:
         from_attributes = True

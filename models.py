@@ -1,6 +1,6 @@
 import enum
 
-from sqlalchemy import Column, Integer, String, ForeignKey, DECIMAL, Enum, DateTime, Table
+from sqlalchemy import Boolean, Column, Integer, String, ForeignKey, DECIMAL, Enum, DateTime, Table
 from sqlalchemy.orm import relationship
 
 from database import Base
@@ -53,6 +53,7 @@ class OptionItem(Base):
     typeId = Column(Integer, ForeignKey('optiontypes.id', ondelete='CASCADE'))
     type = relationship('OptionType', back_populates='items', foreign_keys=[typeId])
     name = Column(String(20))
+    isDefault = Column(Boolean, default=False, nullable=False)
     priceChange = Column(DECIMAL(5, 2))
 
 
@@ -62,8 +63,6 @@ class OptionType(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(20))
     items = relationship('OptionItem', back_populates='type', lazy='dynamic', foreign_keys=[OptionItem.typeId])
-    defaultId = Column(Integer, ForeignKey('optionitems.id', ondelete='SET NULL'))
-    default = relationship('OptionItem', foreign_keys=[defaultId])
 
 
 class ItemType(Base):
