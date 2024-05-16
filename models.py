@@ -30,6 +30,13 @@ itemOptionAssociation = Table('item_option_association', Base.metadata,
                               )
 
 
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(String(9), primary_key=True)
+    name = Column(String(255))
+
+
 class Category(Base):
     __tablename__ = 'categories'
 
@@ -109,8 +116,8 @@ class Order(Base):
     number = Column(String(5))
     status = Column(Enum(OrderStatus))
     createdTime = Column(DateTime)
-    contactName = Column(String(64))
-    contactRoom = Column(String(5))
+    userId = Column(Integer, ForeignKey('users.id', ondelete='SET NULL'))
+    user = relationship('User', back_populates='orders')
 
 
 class SettingItem(Base):

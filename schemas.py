@@ -5,6 +5,11 @@ from typing import List
 from pydantic import BaseModel
 
 
+class UserSchema(BaseModel):
+    id: str
+    name: str
+
+
 class CategorySchema(BaseModel):
     id: int
     name: str
@@ -78,8 +83,7 @@ class OrderSchema(BaseModel):
     number: str
     status: str  # notStarted, inProgress, ready, or pickedUp
     createdTime: datetime
-    contactName: str
-    contactRoom: str
+    user: UserSchema
     items: List[OrderedItemSchema]
 
     class Config:
@@ -88,8 +92,6 @@ class OrderSchema(BaseModel):
 
 class OrderCreateSchema(BaseModel):
     items: List[OrderedItemCreateSchema]
-    contactName: str
-    contactRoom: str
 
 
 class OrderEstimateSchema(BaseModel):

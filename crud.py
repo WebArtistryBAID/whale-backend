@@ -16,6 +16,20 @@ def ensure_not_none(value):
     return value
 
 
+def create_user(session: Session, user_id: str, user_name: str):
+    user = User(
+        id=user_id,
+        name=user_name
+    )
+    session.add(user)
+    session.commit()
+    return user
+
+
+def get_user(session: Session, user_id: str):
+    return session.query(User).filter(User.id == user_id).one_or_none()
+
+
 def get_categories(session: Session):
     return session.query(Category).all()
 
@@ -84,12 +98,11 @@ def get_order_by_number(session: Session, number: str):
     return session.query(Order).filter(Order.number == number).order_by(Order.createdTime.desc()).first()
 
 
-def create_order(session: Session, schema: OrderCreateSchema):
+def create_order(session: Session, schema: OrderCreateSchema, user: User):
     order = Order(
         status=OrderStatus.notStarted,
         createdTime=datetime.datetime.now(),
-        contactName=schema.contactName,
-        contactRoom=schema.contactRoom
+        userId=user.id
     )
     for item in schema.items:
         order.items.append(create_ordered_item(session, order.id, item))

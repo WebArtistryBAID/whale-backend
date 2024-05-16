@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta, timezone
 from fastapi import FastAPI, Depends, HTTPException
 from jose import JWTError, jwt
 import os
@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 import crud
 from database import SessionLocal
-from models import Order, OrderStatus
+from models import Order, OrderStatus, User
 from schemas import *
 
 app = FastAPI()
@@ -22,16 +22,16 @@ def get_db():
         db.close()
 
 
-def get_current_user(token: str):
+def get_current_user(token: str, db: Session = Depends(get_db)):
     try:
         payload = jwt.decode(token, os.environ["JWT_SECRET_KEY"], algorithms=["HS256"])
-        return payload
+        return crud.ensure_not_none(crud.get_user(db, payload["id"]))
     except JWTError:
         raise HTTPException(status_code=401, detail="Could not validate credentials")
 
 
 @app.get("/token", response_model=AccessToken)
-def login(username: str, password: str):
+def login(username: str, password: str, db: Session = Depends(get_db)):
     r = requests.post("https://passport.seiue.com/login?school_id=452",
                   data={"email": username, "password": password, "school_id": "452", "submit": "Submit"},
                   headers={"Content-Type": "application/x-www-form-urlencoded", "User-Agent": "Mozilla/5.0 (Wayland; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"})
@@ -41,7 +41,9 @@ def login(username: str, password: str):
     
     if len(matches_name) < 1 or len(matches_id) < 1:
         raise HTTPException(status_code=401, detail="Login failed")
-    data = {"name": matches_name[0].encode().decode("unicode-escape"), "id": matches_id[0], "exp": datetime.now(timezone.utc) + timedelta(days=7)}
+    data = {"name": matches_name[0].encode().decode("unicode-escape"), "id": matches_id[0], "exp": datetime.now(timezone.utc) + timedelta(days=30)}
+    if crud.get_user(db, data["id"]) is None:
+        crud.create_user(db, data["id"], data["name"])
     encoded = jwt.encode(data, os.environ["JWT_SECRET_KEY"], algorithm="HS256")
     return AccessToken(access_token=encoded, token_type="Bearer")
 
@@ -119,14 +121,14 @@ def estimate(id: int | None = None, db: Session = Depends(get_db)):
 
 
 @app.delete("/order", response_model=bool)
-def cancel_order(id: int, db: Session = Depends(get_db)):
+def cancel_order(id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     order = crud.ensure_not_none(crud.get_order(db, id))
-    if order.status == OrderStatus.notStarted:
+    if order.status == OrderStatus.notStarted and order.userId == user.id:
         crud.delete_order(db, order)
         return True
     raise HTTPException(status_code=401, detail="Order already started")
 
 
 @app.post("/order", response_model=OrderSchema)
-def order(order: OrderCreateSchema, db: Session = Depends(get_db)):
-    return crud.create_order(db, order)
+def order(order: OrderCreateSchema, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return crud.create_order(db, order, user)
