@@ -5,6 +5,7 @@ import os
 import re
 import requests
 from sqlalchemy.orm import Session
+from starlette.middleware.cors import CORSMiddleware
 
 import crud
 from database import SessionLocal
@@ -12,6 +13,14 @@ from models import Order, OrderStatus, User
 from schemas import *
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 
 def get_db():
@@ -31,9 +40,9 @@ def get_current_user(token: str, db: Session = Depends(get_db)):
 
 
 @app.post("/token", response_model=AccessToken)
-def login(username: str, password: str, db: Session = Depends(get_db)):
+async def login(login: LoginSchema, db: Session = Depends(get_db)):
     r = requests.post("https://passport.seiue.com/login?school_id=452",
-                  data={"email": username, "password": password, "school_id": "452", "submit": "Submit"},
+                  data={"email": login.username, "password": login.password, "school_id": "452", "submit": "Submit"},
                   headers={"Content-Type": "application/x-www-form-urlencoded", "User-Agent": "Mozilla/5.0 (Wayland; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"})
     result = r.text.replace(" ", "").replace("\n", "").strip()
     matches_name = re.findall(r',"name":"([^"]+)","old_user_id":null,"outer_id":null,', result)

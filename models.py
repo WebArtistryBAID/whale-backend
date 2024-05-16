@@ -35,6 +35,7 @@ class User(Base):
 
     id = Column(String(9), primary_key=True)
     name = Column(String(255))
+    orders = relationship('Order', back_populates='user', lazy='dynamic')
 
 
 class Category(Base):

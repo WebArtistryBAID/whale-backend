@@ -10,6 +10,11 @@ class UserSchema(BaseModel):
     name: str
 
 
+class LoginSchema(BaseModel):
+    username: str
+    password: str
+
+
 class CategorySchema(BaseModel):
     id: int
     name: str
