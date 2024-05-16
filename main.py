@@ -5,7 +5,6 @@ import os
 import re
 import requests
 from sqlalchemy.orm import Session
-from starlette.middleware.cors import CORSMiddleware
 
 import crud
 from database import SessionLocal
@@ -23,10 +22,18 @@ def get_db():
         db.close()
 
 
+def get_current_user(token: str):
+    try:
+        payload = jwt.decode(token, os.environ["JWT_SECRET_KEY"], algorithms=["HS256"])
+        return payload
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Could not validate credentials")
+
+
 @app.get("/token", response_model=AccessToken)
 def login(username: str, password: str):
-    r = requests.post("https://passport.seiue.com/login?school_id=452", 
-                  json={"email": username, "password": password, "school_id": "452", "submit": "Submit"},
+    r = requests.post("https://passport.seiue.com/login?school_id=452",
+                  data={"email": username, "password": password, "school_id": "452", "submit": "Submit"},
                   headers={"Content-Type": "application/x-www-form-urlencoded", "User-Agent": "Mozilla/5.0 (Wayland; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"})
     result = r.text.replace(" ", "").replace("\n", "").strip()
     matches_name = re.findall(r',"name":"([^"]+)","old_user_id":null,"outer_id":null,', result)
@@ -34,7 +41,7 @@ def login(username: str, password: str):
     
     if len(matches_name) < 1 or len(matches_id) < 1:
         raise HTTPException(status_code=401, detail="Login failed")
-    data = {"name": matches_name[0], "id": matches_id[0], "exp": datetime.now(timezone.utc) + timedelta(days=7)}
+    data = {"name": matches_name[0].encode().decode("unicode-escape"), "id": matches_id[0], "exp": datetime.now(timezone.utc) + timedelta(days=7)}
     encoded = jwt.encode(data, os.environ["JWT_SECRET_KEY"], algorithm="HS256")
     return AccessToken(access_token=encoded, token_type="Bearer")
 
