@@ -12,6 +12,7 @@ To run in development:
 * Clone the repository.
 * Run `pip install -r requirements.txt`.
 * Export the environment variable `DATABASE_URL`, and set it to the database that you want to use (typically `sqlite:///database.db`). You need to do this every time before running.
+* Export the environment variable `JWT_SECRET_KEY`, and set it to the JWT secret key that you want to use. You will need to do this every time before running. You can use `openssl rand -hex 32` to generate a secret key.
 * Run `alembic upgrade head` to apply database migrations. You only need to do this when new migrations are released.
 * Run `python -m uvicorn main:app --reload`.
 

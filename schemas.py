@@ -102,3 +102,8 @@ class OrderEstimateSchema(BaseModel):
 class SettingItemSchema(BaseModel):
     key: str
     value: str
+
+
+class AccessToken(BaseModel):
+    access_token: str
+    token_type: str
