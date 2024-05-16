@@ -30,7 +30,7 @@ def get_current_user(token: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Could not validate credentials")
 
 
-@app.get("/token", response_model=AccessToken)
+@app.post("/token", response_model=AccessToken)
 def login(username: str, password: str, db: Session = Depends(get_db)):
     r = requests.post("https://passport.seiue.com/login?school_id=452",
                   data={"email": username, "password": password, "school_id": "452", "submit": "Submit"},
