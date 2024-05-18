@@ -20,7 +20,7 @@ def login_redirect(redirect: str):
     return {
         "target": f"https://passport.seiue.com/authorize?response_type=token&client_id={os.environ["SEIUE_CLIENT_ID"]}"
                   f"&school_id=452&scope=reflection.read_basic"
-                  f"&redirect_uri=({urllib.parse.quote(os.environ["API_HOST"] + f"/login/capture?redirect={urllib.parse.quote(redirect, safe="")}", safe="")}"
+                  f"&redirect_uri={urllib.parse.quote(os.environ["API_HOST"] + f"/login/capture?redirect={urllib.parse.quote(redirect, safe="")}", safe="")}"
     }
 
 
