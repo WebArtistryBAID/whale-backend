@@ -51,7 +51,7 @@ def login_capture_token(redirect: str):
 
 
 @router.get("/login/exchange")
-def login_token_redirect(error: str | None, token: str | None, redirect: str, db: Session = Depends(get_db)):
+def login_token_redirect(redirect: str, error: str | None = None, token: str | None = None, db: Session = Depends(get_db)):
     if error is not None or token is None:
         return RedirectResponse(redirect + "/?error=error", status_code=302)
     # Still in a separate context, but now we redirect back to the SPA with our custom token
