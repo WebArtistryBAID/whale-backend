@@ -4,7 +4,7 @@ from fastapi import Depends, HTTPException
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 
-import crud
+from utils import crud
 from data.database import SessionLocal
 
 
