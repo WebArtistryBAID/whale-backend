@@ -53,7 +53,7 @@ def login_capture_token(redirect: str):
 @router.get("/login/exchange")
 def login_token_redirect(redirect: str, error: str | None = None, token: str | None = None, db: Session = Depends(get_db)):
     if error is not None or token is None:
-        return RedirectResponse(redirect + "/?error=error", status_code=302)
+        return RedirectResponse(redirect + "?error=error", status_code=302)
     # Still in a separate context, but now we redirect back to the SPA with our custom token
     r = requests.get("https://open.seiue.com/api/v3/oauth/me",
                      headers={
@@ -61,11 +61,11 @@ def login_token_redirect(redirect: str, error: str | None = None, token: str | N
                          "X-School-Id": "452"
                      })
     if r.status_code != 200:
-        return RedirectResponse(redirect + "/?error=error", status_code=302)
+        return RedirectResponse(redirect + "?error=error", status_code=302)
     data = r.json()
     if crud.get_user(db, data["usin"]) is None:
         crud.create_user(db, data["usin"], data["name"], data.get("pinyin"), data.get("phone"))
-    data = {"name": data["name"], "id": data["usin"],
+    to_encode = {"name": data["name"], "id": data["usin"],
             "exp": datetime.now(timezone.utc) + timedelta(days=30)}
-    encoded = jwt.encode(data, key=os.environ["JWT_SECRET"], algorithm="HS256")
-    return RedirectResponse(redirect + "/?token=" + urllib.parse.quote(encoded, safe=""), status_code=302)
+    encoded = jwt.encode(to_encode, key=os.environ["JWT_SECRET"], algorithm="HS256")
+    return RedirectResponse(redirect + "?token=" + urllib.parse.quote(encoded, safe="") + "&name=" + urllib.parse.quote(data["name"], safe=""), status_code=302)
