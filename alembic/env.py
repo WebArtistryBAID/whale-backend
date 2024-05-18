@@ -7,8 +7,7 @@ from alembic import context
 
 import os
 
-import database
-import models  # Do not remove, initializes models
+from data import database
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

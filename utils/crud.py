@@ -3,8 +3,8 @@ from decimal import Decimal, getcontext
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from models import *
-from schemas import OrderedItemCreateSchema, OrderCreateSchema
+from data.models import *
+from data.schemas import OrderedItemCreateSchema, OrderCreateSchema
 
 
 getcontext().prec = 5
@@ -16,10 +16,12 @@ def ensure_not_none(value):
     return value
 
 
-def create_user(session: Session, user_id: str, user_name: str):
+def create_user(session: Session, user_id: str, user_name: str, pinyin: str | None = None, phone: str | None = None):
     user = User(
         id=user_id,
-        name=user_name
+        name=user_name,
+        pinyin=pinyin,
+        phone=phone
     )
     session.add(user)
     session.commit()

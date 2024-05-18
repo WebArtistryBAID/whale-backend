@@ -3,7 +3,7 @@ import enum
 from sqlalchemy import Boolean, Column, Integer, String, ForeignKey, DECIMAL, Enum, DateTime, Table
 from sqlalchemy.orm import relationship
 
-from database import Base
+from data.database import Base
 
 
 orderedItemOptionAssoc = Table('ordered_item_option_association', Base.metadata,
@@ -35,6 +35,8 @@ class User(Base):
 
     id = Column(String(9), primary_key=True)
     name = Column(String(255))
+    pinyin = Column(String(255))
+    phone = Column(String(255))
     orders = relationship('Order', back_populates='user', lazy='dynamic')
 
 
