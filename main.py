@@ -1,6 +1,7 @@
 import os
 
 from fastapi import FastAPI
+from fastapi_pagination import add_pagination
 from starlette.middleware.cors import CORSMiddleware
 
 from routers import login, api
@@ -18,3 +19,5 @@ if os.environ.get("DEVELOPMENT") == "true":
 
 app.include_router(api.router)
 app.include_router(login.router)
+
+add_pagination(app)

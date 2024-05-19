@@ -119,7 +119,7 @@ class Order(Base):
     number = Column(String(5))
     status = Column(Enum(OrderStatus))
     createdTime = Column(DateTime)
-    userId = Column(Integer, ForeignKey('users.id', ondelete='SET NULL'))
+    userId = Column(String(9), ForeignKey('users.id', ondelete='SET NULL'))
     user = relationship('User', back_populates='orders')
 
 

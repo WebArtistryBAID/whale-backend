@@ -2,6 +2,7 @@ import datetime
 from decimal import Decimal, getcontext
 
 from fastapi import HTTPException
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from data.models import *
 from data.schemas import OrderedItemCreateSchema, OrderCreateSchema
@@ -98,6 +99,11 @@ def get_order(session: Session, order_id: int):
 
 def get_order_by_number(session: Session, number: str):
     return session.query(Order).filter(Order.number == number).order_by(Order.createdTime.desc()).first()
+
+
+def get_orders_query_by_user(user_id: str):
+    # Note that this does not return everything queried - this is an uncompleted query to be paginated
+    return select(Order).filter(Order.userId == user_id).order_by(Order.createdTime.desc())
 
 
 def create_order(session: Session, schema: OrderCreateSchema, user: User):

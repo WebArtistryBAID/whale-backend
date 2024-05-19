@@ -75,7 +75,7 @@ def upgrade() -> None:
     sa.Column('number', sa.String(length=5), nullable=True),
     sa.Column('status', sa.Enum('notStarted', 'inProgress', 'ready', 'pickedUp', name='orderstatus'), nullable=True),
     sa.Column('createdTime', sa.DateTime(), nullable=True),
-    sa.Column('userId', sa.Integer(), nullable=True),
+    sa.Column('userId', sa.String(length=9), nullable=True),
     sa.ForeignKeyConstraint(['userId'], ['users.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id')
     )

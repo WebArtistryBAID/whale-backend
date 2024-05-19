@@ -1,4 +1,8 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi_pagination import Page
+from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy.orm import Session
 
 from data.models import OrderStatus, Order, User
@@ -82,7 +86,7 @@ def estimate(id: int | None = None, db: Session = Depends(get_db)):
 
 
 @router.delete("/order", response_model=bool)
-def cancel_order(id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def cancel_order(id: int, user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
     order = crud.ensure_not_none(crud.get_order(db, id))
     if order.status == OrderStatus.notStarted and order.userId == user.id:
         crud.delete_order(db, order)
@@ -91,5 +95,10 @@ def cancel_order(id: int, user: User = Depends(get_current_user), db: Session = 
 
 
 @router.post("/order", response_model=OrderSchema)
-def order(order: OrderCreateSchema, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def order(order: OrderCreateSchema, user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
     return crud.create_order(db, order, user)
+
+
+@router.get("/orders", response_model=Page[OrderSchema])
+def user_orders(user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
+    return paginate(db, crud.get_orders_query_by_user(user.id))
