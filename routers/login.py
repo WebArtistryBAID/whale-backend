@@ -3,7 +3,7 @@ import urllib.parse
 from datetime import datetime, timezone, timedelta
 
 import requests
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from jose import jwt
 from sqlalchemy.orm import Session
 from starlette.responses import HTMLResponse, RedirectResponse
@@ -67,5 +67,16 @@ def login_token_redirect(redirect: str, error: str | None = None, token: str | N
         crud.create_user(db, data["usin"], data["name"], data.get("pinyin"), data.get("phone"))
     to_encode = {"name": data["name"], "id": data["usin"],
             "exp": datetime.now(timezone.utc) + timedelta(days=30)}
-    encoded = jwt.encode(to_encode, key=os.environ["JWT_SECRET"], algorithm="HS256")
+    encoded = jwt.encode(to_encode, key=os.environ["JWT_SECRET_KEY"], algorithm="HS256")
     return RedirectResponse(redirect + "?token=" + urllib.parse.quote(encoded, safe="") + "&name=" + urllib.parse.quote(data["name"], safe=""), status_code=302)
+
+
+@router.get("/login/test")
+def login_test(db: Session = Depends(get_db)):
+    if os.environ.get("DEVELOPMENT") != "true":
+        raise HTTPException(status_code=403)
+    if crud.get_user(db, "00000000") is None:
+        crud.create_user(db, "00000000", "Test", "Test", "0000")
+    to_encode = {"name": "Test", "id": "00000000", "exp": datetime.now(timezone.utc) + timedelta(days=30)}
+    encoded = jwt.encode(to_encode, key=os.environ["JWT_SECRET_KEY"])
+    return RedirectResponse(os.environ["FRONTEND_HOST"] + "/login/onboarding/_?token=" + urllib.parse.quote(encoded, safe="") + "&name=Test", status_code=302)

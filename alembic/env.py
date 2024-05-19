@@ -8,6 +8,7 @@ from alembic import context
 import os
 
 from data import database
+from data import models
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

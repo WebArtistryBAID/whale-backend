@@ -16,7 +16,7 @@ To run in development:
 * Export the environment variable `FRONTEND_HOST`, which is the full URL on which the frontend is hosted. For example, `https://example.com`. No slashes are needed at the end.
 * Export the environment variable `JWT_SECRET_KEY`, and set it to the JWT secret key that you want to use. You will need to do this every time before running. You can use `openssl rand -hex 32` to generate a secret key.
 * Export the environment variable `SEIUE_CLIENT_ID`, and set it to the client ID received from SEIUE for authentication. Same for `SEIUE_CLIENT_SECRET`.
-* Export the environment variable `DEVELOPMENT` if you want to bypass CORS protections.
+* Export the environment variable `DEVELOPMENT` to `true` if you want to bypass CORS protections and enable certain development-only features.
 * Run `alembic upgrade head` to apply database migrations. You only need to do this when new migrations are released.
 * Run `python -m uvicorn main:app --reload`.
 
