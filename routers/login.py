@@ -18,9 +18,9 @@ router = APIRouter()
 def login_redirect(redirect: str):
     # We are still within the SPA context here, so the redirect is performed by the SPA
     return {
-        "target": f"https://passport.seiue.com/authorize?response_type=token&client_id={os.environ["SEIUE_CLIENT_ID"]}"
-                  f"&school_id=452&scope=reflection.read_basic"
-                  f"&redirect_uri={urllib.parse.quote(os.environ["API_HOST"] + f"/login/capture?redirect={urllib.parse.quote(redirect, safe="")}", safe="")}"
+        "target": "https://passport.seiue.com/authorize?response_type=token&client_id=" + os.environ["SEIUE_CLIENT_ID"] +
+                  "&school_id=452&scope=reflection.read_basic" +
+                  "&redirect_uri=" + urllib.parse.quote(os.environ["API_HOST"] + "/login/capture?redirect=" + urllib.parse.quote(redirect, safe=""), safe="")
     }
 
 
