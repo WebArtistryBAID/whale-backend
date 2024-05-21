@@ -24,6 +24,13 @@ class UserSchemaSecure(BaseModel):
         from_attributes = True
 
 
+class UserStatisticsSchema(BaseModel):
+    totalOrders: int
+    totalCups: int
+    totalSpent: Decimal
+    deletable: bool
+
+
 class LoginSchema(BaseModel):
     username: str
     password: str

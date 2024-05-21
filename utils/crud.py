@@ -33,6 +33,11 @@ def get_user(session: Session, user_id: str):
     return session.query(User).filter(User.id == user_id).one_or_none()
 
 
+def delete_user(session: Session, user: User):
+    session.delete(user)
+    session.commit()
+
+
 def get_categories(session: Session):
     return session.query(Category).all()
 
@@ -104,6 +109,10 @@ def get_order_by_number(session: Session, number: str):
 def get_orders_query_by_user(user_id: str):
     # Note that this does not return everything queried - this is an uncompleted query to be paginated
     return select(Order).filter(Order.userId == user_id).order_by(Order.createdTime.desc())
+
+
+def get_orders_by_user(session: Session, user_id: str):
+    return session.query(Order).filter(Order.userId == user_id).order_by(Order.createdTime.desc()).all()
 
 
 def create_order(session: Session, schema: OrderCreateSchema, user: User):
