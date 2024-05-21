@@ -36,13 +36,14 @@ def login_capture_token(redirect: str):
 </head>
 <body>
     <script>
-        if (location.hash.length < 1) {
+        if (location.hash.includes('access_token')) {
+            const token = location.hash.replace('#', '')
+            const match = token.match(/access_token=([^&]*)/)
+            if (match && match[1]) {
+                location.href = `exchange/?token=${match[1]}&redirect=""" + redirect + """`
+            }
+        } else {
             location.href = 'exchange/?error=error'
-        }
-
-        if (location.hash.includes('#access_token=')) {
-            const token = location.hash.replace('#access_token=', '')
-            location.href = `exchange/?token=${token}&redirect=""" + redirect + """`
         }
     </script>
 </body>
