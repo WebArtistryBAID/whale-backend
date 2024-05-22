@@ -8,6 +8,25 @@ from pydantic import BaseModel
 class UserSchema(BaseModel):
     id: str
     name: str
+    permissions: str
+    pinyin: str | None
+
+    class Config:
+        from_attributes = True
+
+
+class UserSchemaSecure(UserSchema):
+    phone: str | None
+
+    class Config:
+        from_attributes = True
+
+
+class UserStatisticsSchema(BaseModel):
+    totalOrders: int
+    totalCups: int
+    totalSpent: Decimal
+    deletable: bool
 
 
 class LoginSchema(BaseModel):
@@ -93,6 +112,11 @@ class OrderSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class OrderStatusUpdateSchema(BaseModel):
+    id: int
+    status: str  # notStarted, inProgress, ready or pickedUp
 
 
 class OrderCreateSchema(BaseModel):

@@ -37,6 +37,7 @@ class User(Base):
     name = Column(String(255))
     pinyin = Column(String(255))
     phone = Column(String(255))
+    permissions = Column(String(1024), default="")
     orders = relationship('Order', back_populates='user', lazy='dynamic')
 
 
@@ -119,7 +120,7 @@ class Order(Base):
     number = Column(String(5))
     status = Column(Enum(OrderStatus))
     createdTime = Column(DateTime)
-    userId = Column(Integer, ForeignKey('users.id', ondelete='SET NULL'))
+    userId = Column(String(9), ForeignKey('users.id', ondelete='SET NULL'))
     user = relationship('User', back_populates='orders')
 
 

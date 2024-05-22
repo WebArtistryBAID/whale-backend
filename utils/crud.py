@@ -2,6 +2,7 @@ import datetime
 from decimal import Decimal, getcontext
 
 from fastapi import HTTPException
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from data.models import *
 from data.schemas import OrderedItemCreateSchema, OrderCreateSchema
@@ -30,6 +31,22 @@ def create_user(session: Session, user_id: str, user_name: str, pinyin: str | No
 
 def get_user(session: Session, user_id: str):
     return session.query(User).filter(User.id == user_id).one_or_none()
+
+
+def update_user(session: Session, user: User, user_name: str | None = None, pinyin: str | None = None, phone: str | None = None):
+    if user_name is not None:
+        user.name = user_name
+    if pinyin is not None:
+        user.pinyin = pinyin
+    if phone is not None:
+        user.phone = phone
+    session.commit()
+    return user
+
+
+def delete_user(session: Session, user: User):
+    session.delete(user)
+    session.commit()
 
 
 def get_categories(session: Session):
@@ -100,6 +117,19 @@ def get_order_by_number(session: Session, number: str):
     return session.query(Order).filter(Order.number == number).order_by(Order.createdTime.desc()).first()
 
 
+def get_orders_query_by_user(user_id: str):
+    # Note that this does not return everything queried - this is an uncompleted query to be paginated
+    return select(Order).filter(Order.userId == user_id).order_by(Order.createdTime.desc())
+
+
+def get_orders_by_user(session: Session, user_id: str):
+    return session.query(Order).filter(Order.userId == user_id).order_by(Order.createdTime.desc()).all()
+
+
+def get_available_orders(session: Session):
+    return session.query(Order).filter(Order.status != OrderStatus.pickedUp).order_by(Order.createdTime.desc()).all()
+
+
 def create_order(session: Session, schema: OrderCreateSchema, user: User):
     order = Order(
         status=OrderStatus.notStarted,
@@ -127,7 +157,7 @@ def create_order(session: Session, schema: OrderCreateSchema, user: User):
     return order
 
 
-def update_order_status(session: Session, order: Order, new_status: str):
+def update_order_status(session: Session, order: Order, new_status: OrderStatus):
     order.status = new_status
     session.commit()
 

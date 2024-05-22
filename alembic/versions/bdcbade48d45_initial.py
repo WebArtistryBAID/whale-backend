@@ -1,8 +1,8 @@
 """initial
 
-Revision ID: bf22c97aa6c8
+Revision ID: bdcbade48d45
 Revises: 
-Create Date: 2024-05-16 21:16:34.150072
+Create Date: 2024-05-22 02:38:24.099513
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'bf22c97aa6c8'
+revision: str = 'bdcbade48d45'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -44,6 +44,9 @@ def upgrade() -> None:
     op.create_table('users',
     sa.Column('id', sa.String(length=9), nullable=False),
     sa.Column('name', sa.String(length=255), nullable=True),
+    sa.Column('pinyin', sa.String(length=255), nullable=True),
+    sa.Column('phone', sa.String(length=255), nullable=True),
+    sa.Column('permissions', sa.String(length=1024), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('itemtypes',
@@ -73,7 +76,7 @@ def upgrade() -> None:
     sa.Column('number', sa.String(length=5), nullable=True),
     sa.Column('status', sa.Enum('notStarted', 'inProgress', 'ready', 'pickedUp', name='orderstatus'), nullable=True),
     sa.Column('createdTime', sa.DateTime(), nullable=True),
-    sa.Column('userId', sa.Integer(), nullable=True),
+    sa.Column('userId', sa.String(length=9), nullable=True),
     sa.ForeignKeyConstraint(['userId'], ['users.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id')
     )
