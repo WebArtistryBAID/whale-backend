@@ -20,6 +20,12 @@ To run in development:
 * Run `alembic upgrade head` to apply database migrations. You only need to do this when new migrations are released.
 * Run `python -m uvicorn main:app --reload`.
 
+## Permissions
+
+Some users have specific permissions that allow them to access more features. These include:
+* `admin.statistics`: Allows viewing statistics aggregates.
+* `admin.manage`: Allows managing orders.
+
 ## Contribution
 
 To contribute, simply open a pull request.

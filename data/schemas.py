@@ -8,16 +8,14 @@ from pydantic import BaseModel
 class UserSchema(BaseModel):
     id: str
     name: str
+    permissions: str
     pinyin: str | None
 
     class Config:
         from_attributes = True
 
 
-class UserSchemaSecure(BaseModel):
-    id: str
-    name: str
-    pinyin: str | None
+class UserSchemaSecure(UserSchema):
     phone: str | None
 
     class Config:
