@@ -105,6 +105,21 @@ def user_orders(user: Annotated[User, Depends(get_current_user)], db: Session = 
     return paginate(db, crud.get_orders_query_by_user(user.id))
 
 
+@router.get("/orders/available", response_model=list[OrderSchema])
+def available_orders(user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
+    if "admin.manage" not in user.permissions:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    return crud.get_available_orders(db)
+
+
+@router.patch("/order", response_model=OrderSchema)
+def update_order_status(id: int, status: OrderStatus, user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
+    order = crud.ensure_not_none(crud.get_order(db, id))
+    if "admin.manage" not in user.permissions:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    return crud.update_order_status(db, order, status)
+
+
 @router.get("/me", response_model=UserSchemaSecure)
 def me(user: Annotated[User, Depends(get_current_user)]):
     return user

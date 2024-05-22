@@ -126,6 +126,10 @@ def get_orders_by_user(session: Session, user_id: str):
     return session.query(Order).filter(Order.userId == user_id).order_by(Order.createdTime.desc()).all()
 
 
+def get_available_orders(session: Session):
+    return session.query(Order).filter(Order.status != OrderStatus.pickedUp).order_by(Order.createdTime.desc()).all()
+
+
 def create_order(session: Session, schema: OrderCreateSchema, user: User):
     order = Order(
         status=OrderStatus.notStarted,
@@ -153,7 +157,7 @@ def create_order(session: Session, schema: OrderCreateSchema, user: User):
     return order
 
 
-def update_order_status(session: Session, order: Order, new_status: str):
+def update_order_status(session: Session, order: Order, new_status: OrderStatus):
     order.status = new_status
     session.commit()
 
