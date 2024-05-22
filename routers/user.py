@@ -1,6 +1,8 @@
 import os
 import urllib.parse
 from datetime import datetime, timezone, timedelta
+from decimal import Decimal
+from typing import Annotated
 
 import requests
 from fastapi import APIRouter, Depends, HTTPException
@@ -8,8 +10,10 @@ from jose import jwt
 from sqlalchemy.orm import Session
 from starlette.responses import HTMLResponse, RedirectResponse
 
+from data.models import User, OrderStatus
+from data.schemas import UserSchemaSecure, UserStatisticsSchema
 from utils import crud
-from utils.dependencies import get_db
+from utils.dependencies import get_db, get_current_user
 
 router = APIRouter()
 
@@ -83,3 +87,39 @@ def login_test(db: Session = Depends(get_db)):
     to_encode = {"name": "Test", "id": "00000000", "exp": datetime.now(timezone.utc) + timedelta(days=30)}
     encoded = jwt.encode(to_encode, key=os.environ["JWT_SECRET_KEY"])
     return RedirectResponse(os.environ["FRONTEND_HOST"] + "/login/onboarding/_?token=" + urllib.parse.quote(encoded, safe="") + "&name=Test", status_code=302)
+
+
+@router.get("/me", response_model=UserSchemaSecure)
+def me(user: Annotated[User, Depends(get_current_user)]):
+    return user
+
+
+@router.get("/me/statistics", response_model=UserStatisticsSchema)
+def me_statistics(user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
+    orders = crud.get_orders_by_user(db, user.id)
+    orders_amount = len(orders)
+    total_spent = Decimal(0)
+    total_cups = 0
+    deletable = True
+    for order in orders:
+        total_spent += order.totalPrice
+        for item in order.items:
+            total_cups += item.amount
+        if order.status != OrderStatus.pickedUp:
+            deletable = False
+    return UserStatisticsSchema(
+        totalOrders=orders_amount,
+        totalSpent=total_spent,
+        totalCups=total_cups,
+        deletable=deletable
+    )
+
+
+@router.delete("/me", response_model=bool)
+def delete_me(user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
+    orders = crud.get_orders_by_user(db, user.id)
+    for order in orders:
+        if order.status != OrderStatus.pickedUp:
+            raise HTTPException(status_code=403, detail='Cannot delete user with active orders')
+    crud.delete_user(db, user)
+    return True

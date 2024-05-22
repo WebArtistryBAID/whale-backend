@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi_pagination import add_pagination
 from starlette.middleware.cors import CORSMiddleware
 
-from routers import login, api
+from routers import user, api, manage
 
 app = FastAPI()
 
@@ -18,6 +18,7 @@ if os.environ.get("DEVELOPMENT") == "true":
     )
 
 app.include_router(api.router)
-app.include_router(login.router)
+app.include_router(manage.router)
+app.include_router(user.router)
 
 add_pagination(app)
