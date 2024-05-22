@@ -37,7 +37,7 @@ class User(Base):
     name = Column(String(255))
     pinyin = Column(String(255))
     phone = Column(String(255))
-    permissions = Column(String(1024))
+    permissions = Column(String(1024), default="")
     orders = relationship('Order', back_populates='user', lazy='dynamic')
 
 

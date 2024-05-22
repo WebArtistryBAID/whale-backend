@@ -114,6 +114,11 @@ class OrderSchema(BaseModel):
         from_attributes = True
 
 
+class OrderStatusUpdateSchema(BaseModel):
+    id: int
+    status: str  # notStarted, inProgress, ready or pickedUp
+
+
 class OrderCreateSchema(BaseModel):
     items: List[OrderedItemCreateSchema]
 
