@@ -66,6 +66,8 @@ def login_token_redirect(redirect: str, error: str | None = None, token: str | N
     data = r.json()
     if crud.get_user(db, data["usin"]) is None:
         crud.create_user(db, data["usin"], data["name"], data.get("pinyin"), data.get("phone"))
+    else:
+        crud.update_user(db, crud.get_user(db, data["usin"]), data["name"], data.get("pinyin"), data.get("phone"))
     to_encode = {"name": data["name"], "id": data["usin"],
             "exp": datetime.now(timezone.utc) + timedelta(days=30)}
     encoded = jwt.encode(to_encode, key=os.environ["JWT_SECRET_KEY"], algorithm="HS256")
