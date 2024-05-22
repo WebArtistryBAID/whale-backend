@@ -36,7 +36,7 @@ stats_cache = {"day": None, "week": None, "month": None}
 
 
 @router.get("/statistics", response_model=StatsAggregateSchema)
-def statistics(by: str, user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
+def statistics(by: str, user: Annotated[User, Depends(get_current_user)], limit: int = 90, db: Session = Depends(get_db)):
     global stats_last_cached, stats_cache
     if "admin.statistics" not in user.permissions:
         raise HTTPException(status_code=403, detail="Permission denied")
@@ -56,7 +56,7 @@ def statistics(by: str, user: Annotated[User, Depends(get_current_user)], db: Se
     else:  # Default to by day
         get_start_date = lambda x: x
 
-    orders = db.query(Order).filter(Order.createdTime >= (datetime.now() - timedelta(days=180))).order_by(
+    orders = db.query(Order).filter(Order.createdTime >= (datetime.now() - timedelta(days=limit))).order_by(
         Order.createdTime.desc()).all()
     revenue = {}
     orders_count = {}
