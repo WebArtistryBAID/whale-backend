@@ -136,6 +136,12 @@ class SettingItemSchema(BaseModel):
 
 
 class StatsAggregateSchema(BaseModel):
+    todayRevenue: Decimal
+    todayUniqueUsers: int
+    todayOrders: int
+    todayCups: int
+    weekRevenue: Decimal
+    weekRevenueRange: str
     revenue: dict[str, Decimal]  # YYYY-MM-DD to Decimal
     uniqueUsers: dict[str, int]  # YYYY-MM-DD to int
     orders: dict[str, int]

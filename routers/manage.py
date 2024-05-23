@@ -1,9 +1,10 @@
 import time
-from datetime import timedelta, datetime
+from datetime import date, timedelta, datetime
 from decimal import Decimal
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import DATE, cast
 from sqlalchemy.orm import Session
 
 from data.models import User, Order
@@ -33,15 +34,17 @@ def update_order_status(data: OrderStatusUpdateSchema, user: Annotated[User, Dep
 
 stats_last_cached = {"day": 0, "week": 0, "year": 0}
 stats_cache = {"day": None, "week": None, "month": None}
+stats_last_limit = 0
 
 
 @router.get("/statistics", response_model=StatsAggregateSchema)
 def statistics(by: str, user: Annotated[User, Depends(get_current_user)], limit: int = 90, db: Session = Depends(get_db)):
-    global stats_last_cached, stats_cache
+    global stats_last_cached, stats_cache, stats_last_limit
     if "admin.statistics" not in user.permissions:
         raise HTTPException(status_code=403, detail="Permission denied")
-    if time.time() - stats_last_cached[by] < 1200 and stats_cache[by] is not None:
+    if time.time() - stats_last_cached[by] < 1200 and stats_cache[by] is not None and stats_last_limit == limit:
         return stats_cache[by]
+    stats_last_limit = limit
 
     def get_start_of_week(date):
         return date - timedelta(days=date.weekday())
@@ -89,8 +92,37 @@ def statistics(by: str, user: Annotated[User, Depends(get_current_user)], limit:
     for day, users in unique_users.items():
         unique_users[day] = len(users)
 
+    today = date.today()
+    
+    start_of_day = datetime.combine(date.today(), datetime.min.time())
+    end_of_day = datetime.combine(date.today(), datetime.max.time())
+    start_of_week = get_start_of_week(today)
+    end_of_week = start_of_week + timedelta(days=6)
+
+    today_revenue = 0
+    today_orders = 0
+    today_cups = 0
+    today_unique_users = set()
+    week_revenue = 0
+
+    for order in db.query(Order).filter(Order.createdTime >= start_of_day, Order.createdTime <= end_of_day).all():
+        today_revenue += order.totalPrice
+        today_orders += 1
+        for item in order.items:
+            today_cups += item.amount
+        today_unique_users.add(order.userId)
+
+    for order in db.query(Order).filter(Order.createdTime >= start_of_week, Order.createdTime <= end_of_week).all():
+        week_revenue += order.totalPrice
+
     stats_last_cached[by] = time.time()
     stats_cache[by] = StatsAggregateSchema(
+        todayRevenue=today_revenue,
+        todayOrders=today_orders,
+        todayCups=today_cups,
+        todayUniqueUsers=len(today_unique_users),
+        weekRevenue=week_revenue,
+        weekRevenueRange=f"{start_of_week.strftime('%Y-%m-%d')} - {end_of_week.strftime('%Y-%m-%d')}",
         revenue=revenue,
         orders=orders_count,
         cups=cups,
