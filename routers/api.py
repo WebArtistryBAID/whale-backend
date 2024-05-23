@@ -1,4 +1,3 @@
-from decimal import Decimal
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -7,7 +6,7 @@ from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy.orm import Session
 
 from data.models import OrderStatus, Order, User
-from data.schemas import ItemTypeSchema, CategorySchema, OrderSchema, OrderEstimateSchema, OrderCreateSchema, OrderStatusUpdateSchema, UserSchemaSecure, UserStatisticsSchema
+from data.schemas import ItemTypeSchema, CategorySchema, OrderSchema, OrderEstimateSchema, OrderCreateSchema
 from utils import crud
 from utils.dependencies import get_db, get_current_user
 
@@ -103,55 +102,3 @@ def order(order: OrderCreateSchema, user: Annotated[User, Depends(get_current_us
 @router.get("/orders", response_model=Page[OrderSchema])
 def user_orders(user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
     return paginate(db, crud.get_orders_query_by_user(user.id))
-
-
-@router.get("/orders/available", response_model=list[OrderSchema])
-def available_orders(user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
-    if "admin.manage" not in user.permissions:
-        raise HTTPException(status_code=403, detail="Permission denied")
-    return crud.get_available_orders(db)
-
-
-@router.patch("/order", response_model=OrderSchema)
-def update_order_status(data: OrderStatusUpdateSchema, user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
-    order = crud.ensure_not_none(crud.get_order(db, data.id))
-    if "admin.manage" not in user.permissions:
-        raise HTTPException(status_code=403, detail="Permission denied")
-    crud.update_order_status(db, order, data.status)
-    return order
-
-
-@router.get("/me", response_model=UserSchemaSecure)
-def me(user: Annotated[User, Depends(get_current_user)]):
-    return user
-
-
-@router.get("/me/statistics", response_model=UserStatisticsSchema)
-def me_statistics(user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
-    orders = crud.get_orders_by_user(db, user.id)
-    orders_amount = len(orders)
-    total_spent = Decimal(0)
-    total_cups = 0
-    deletable = True
-    for order in orders:
-        total_spent += order.totalPrice
-        for item in order.items:
-            total_cups += item.amount
-        if order.status != OrderStatus.pickedUp:
-            deletable = False
-    return UserStatisticsSchema(
-        totalOrders=orders_amount,
-        totalSpent=total_spent,
-        totalCups=total_cups,
-        deletable=deletable
-    )
-
-
-@router.delete("/me", response_model=bool)
-def delete_me(user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
-    orders = crud.get_orders_by_user(db, user.id)
-    for order in orders:
-        if order.status != OrderStatus.pickedUp:
-            raise HTTPException(status_code=403, detail='Cannot delete user with active orders')
-    crud.delete_user(db, user)
-    return True

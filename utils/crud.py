@@ -157,7 +157,7 @@ def create_order(session: Session, schema: OrderCreateSchema, user: User):
     return order
 
 
-def update_order_status(session: Session, order: Order, new_status: OrderStatus):
+def update_order_status(session: Session, order: Order, new_status: str):
     order.status = new_status
     session.commit()
 
