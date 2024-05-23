@@ -32,8 +32,8 @@ def update_order_status(data: OrderStatusUpdateSchema, user: Annotated[User, Dep
     return order
 
 
-stats_last_cached = {"day": 0, "week": 0, "year": 0}
-stats_cache = {"day": None, "week": None, "month": None}
+stats_last_cached = {"day": 0, "week": 0, "year": 0, "individual": 0}
+stats_cache = {"day": None, "week": None, "month": None, "individual": None}
 stats_last_limit = 0
 
 
@@ -66,7 +66,10 @@ def statistics(by: str, user: Annotated[User, Depends(get_current_user)], limit:
     unique_users = {}
     cups = {}
     for order in orders:
-        day = get_start_date(order.createdTime).strftime("%Y-%m-%d")
+        if by == "individual":
+            day = order.createdTime.strftime("%Y-%m-%d %H:%M:%S")
+        else:
+            day = get_start_date(order.createdTime).strftime("%Y-%m-%d")
         if day in revenue:
             revenue[day] += order.totalPrice
         else:
