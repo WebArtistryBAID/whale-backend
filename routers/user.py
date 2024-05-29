@@ -85,7 +85,7 @@ def login_test(db: Session = Depends(get_db)):
     if crud.get_user(db, "00000000") is None:
         crud.create_user(db, "00000000", "Test", "Test", "0000")
     to_encode = {"name": "Test", "id": "00000000", "exp": datetime.now(timezone.utc) + timedelta(days=30)}
-    encoded = jwt.encode(to_encode, key=os.environ["JWT_SECRET_KEY"])
+    encoded = jwt.encode(to_encode, key=os.environ["JWT_SECRET_KEY"], algorithm="HS256")
     return RedirectResponse(os.environ["FRONTEND_HOST"] + "/login/onboarding/_?token=" + urllib.parse.quote(encoded, safe="") + "&name=Test", status_code=302)
 
 

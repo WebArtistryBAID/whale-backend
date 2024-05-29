@@ -1,11 +1,15 @@
+import os
 import time
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta, datetime, timezone
 from decimal import Decimal
+from io import BytesIO
 from typing import Annotated
 
+import xlsxwriter
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import DATE, cast
+from jose import jwt, JWTError
 from sqlalchemy.orm import Session
+from starlette.responses import Response
 
 from data.models import User, Order
 from data.schemas import OrderSchema, OrderStatusUpdateSchema, StatsAggregateSchema
@@ -37,11 +41,8 @@ stats_cache = {"day": None, "week": None, "month": None, "individual": None}
 stats_last_limit = 0
 
 
-@router.get("/statistics", response_model=StatsAggregateSchema)
-def statistics(by: str, user: Annotated[User, Depends(get_current_user)], limit: int = 90, db: Session = Depends(get_db)):
+def get_statistics(by: str, limit: int, db: Session) -> StatsAggregateSchema:
     global stats_last_cached, stats_cache, stats_last_limit
-    if "admin.statistics" not in user.permissions:
-        raise HTTPException(status_code=403, detail="Permission denied")
     if time.time() - stats_last_cached[by] < 1200 and stats_cache[by] is not None and stats_last_limit == limit:
         return stats_cache[by]
     stats_last_limit = limit
@@ -96,7 +97,7 @@ def statistics(by: str, user: Annotated[User, Depends(get_current_user)], limit:
         unique_users[day] = len(users)
 
     today = date.today()
-    
+
     start_of_day = datetime.combine(date.today(), datetime.min.time())
     end_of_day = datetime.combine(date.today(), datetime.max.time())
     start_of_week = get_start_of_week(today)
@@ -132,3 +133,75 @@ def statistics(by: str, user: Annotated[User, Depends(get_current_user)], limit:
         uniqueUsers=unique_users
     )
     return stats_cache[by]
+
+
+@router.get("/statistics/export/token", response_model=str)
+def statistics_export_token(by: str, limit: int, user: Annotated[User, Depends(get_current_user)]):
+    if "admin.statistics" not in user.permissions:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    return jwt.encode({"type": "statsExport", "by": by, "limit": limit, "exp": datetime.now(timezone.utc) + timedelta(minutes=15)}, key=os.environ["JWT_SECRET_KEY"], algorithm="HS256")
+
+
+@router.get("/statistics/export")
+def statistics_export(token: str, db: Session = Depends(get_db)):
+    try:
+        payload = jwt.decode(token, os.environ["JWT_SECRET_KEY"], algorithms=["HS256"])
+        if payload["type"] != "statsExport":
+            raise HTTPException(status_code=403, detail="Invalid export token")
+        by = payload["by"]
+        limit = payload["limit"]
+    except JWTError | KeyError:
+        raise HTTPException(status_code=403, detail="Invalid export token")
+    stats = get_statistics(by, limit, db)
+
+    output = BytesIO()
+    workbook = xlsxwriter.Workbook(output)
+
+    revenue = workbook.add_worksheet("Total Revenue")
+    orders = workbook.add_worksheet("Orders")
+    cups = workbook.add_worksheet("Cups")
+    unique_users = workbook.add_worksheet("Unique Users")
+
+    row = 1
+    revenue.write(0, 0, "Total Revenue (From start of each time interval)")
+    for ts, r in stats.revenue.items():
+        revenue.write(row, 0, ts)
+        revenue.write(row, 1, str(r))
+        row += 1
+
+    row = 1
+    orders.write(0, 0, "Orders (From start of each time interval)")
+    for ts, o in stats.orders.items():
+        orders.write(row, 0, ts)
+        orders.write(row, 1, str(o))
+        row += 1
+
+    row = 1
+    cups.write(0, 0, "Cups (From start of each time interval)")
+    for ts, c in stats.cups.items():
+        cups.write(row, 0, ts)
+        cups.write(row, 1, str(c))
+        row += 1
+
+    row = 1
+    unique_users.write(0, 0, "Unique Users (From start of each time interval)")
+    for ts, u in stats.uniqueUsers.items():
+        unique_users.write(row, 0, ts)
+        unique_users.write(row, 1, str(u))
+        row += 1
+
+    workbook.close()
+    return Response(
+        output.getvalue(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": "inline; filename=\"exported-stats.xlsx\""
+        }
+    )
+
+
+@router.get("/statistics", response_model=StatsAggregateSchema)
+def statistics(by: str, user: Annotated[User, Depends(get_current_user)], limit: int = 90, db: Session = Depends(get_db)):
+    if "admin.statistics" not in user.permissions:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    return get_statistics(by, limit, db)
