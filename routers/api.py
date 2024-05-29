@@ -88,7 +88,7 @@ def estimate(id: int | None = None, db: Session = Depends(get_db)):
 @router.delete("/order", response_model=bool)
 def cancel_order(id: int, user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
     order = crud.ensure_not_none(crud.get_order(db, id))
-    if order.status == OrderStatus.notStarted and (order.userId == user.id or "admin.manage" in user.permissions):
+    if (order.status == OrderStatus.notStarted and order.userId == user.id) or "admin.manage" in user.permissions:
         crud.delete_order(db, order)
         return True
     raise HTTPException(status_code=401, detail="Order already started")
