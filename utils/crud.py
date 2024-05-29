@@ -141,10 +141,11 @@ def create_order(session: Session, schema: OrderCreateSchema, user: User):
     total_price = Decimal("0")
     for item in order.items:
         item_type = get_item_type(session, item.itemTypeId)
-        total_price += item_type.basePrice * item_type.salePercent
+        item_price = item_type.basePrice * item_type.salePercent
         for option in item.appliedOptions:
-            total_price += option.priceChange
-        total_price *= item.amount
+            item_price += option.priceChange
+        item_price *= item.amount
+        total_price += item_price
     order.totalPrice = total_price
 
     latest = session.query(Order).order_by(Order.createdTime.desc()).first()

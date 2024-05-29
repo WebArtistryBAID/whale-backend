@@ -32,7 +32,7 @@ def update_order_status(data: OrderStatusUpdateSchema, user: Annotated[User, Dep
     return order
 
 
-stats_last_cached = {"day": 0, "week": 0, "year": 0, "individual": 0}
+stats_last_cached = {"day": 0, "week": 0, "month": 0, "year": 0, "individual": 0}
 stats_cache = {"day": None, "week": None, "month": None, "individual": None}
 stats_last_limit = 0
 
