@@ -107,6 +107,8 @@ class OrderSchema(BaseModel):
     number: str
     status: str  # notStarted, inProgress, ready, or pickedUp
     createdTime: datetime
+    type: str  # pickUp, delivery
+    deliveryRoom: str | None
     user: UserSchema
     items: List[OrderedItemSchema]
 
@@ -120,12 +122,15 @@ class OrderStatusUpdateSchema(BaseModel):
 
 
 class OrderCreateSchema(BaseModel):
+    type: str  # pickUp, delivery
+    deliveryRoom: str | None
     items: List[OrderedItemCreateSchema]
 
 
 class OrderEstimateSchema(BaseModel):
     time: int
     orders: int
+    type: str | None  # pickUp, delivery
     number: str | None
     status: str | None  # notStarted, inProgress, ready, or pickedUp
 

@@ -61,6 +61,7 @@ def estimate(id: int | None = None, db: Session = Depends(get_db)):
             return OrderEstimateSchema(
                 time=0,
                 orders=0,
+                type=None if order is None else order.type,
                 number=None if order is None else order.number,
                 status=None if order is None else order.status
             )
@@ -81,6 +82,7 @@ def estimate(id: int | None = None, db: Session = Depends(get_db)):
     return OrderEstimateSchema(
         time=amount * 2,
         orders=len(matching_orders),
+        type=None if order is None else order.type,
         number=None if order is None else order.number,
         status=None if order is None else order.status
     )

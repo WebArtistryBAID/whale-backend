@@ -134,6 +134,8 @@ def create_order(session: Session, schema: OrderCreateSchema, user: User):
     order = Order(
         status=OrderStatus.notStarted,
         createdTime=datetime.datetime.now(),
+        type=schema.type,
+        deliveryRoom=schema.deliveryRoom,
         userId=user.id
     )
     for item in schema.items:

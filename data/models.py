@@ -111,6 +111,11 @@ class OrderStatus(enum.Enum):
     pickedUp = 'pickedUp'
 
 
+class OrderType(enum.Enum):
+    pickUp = 'pickUp'
+    delivery = 'delivery'
+
+
 class Order(Base):
     __tablename__ = 'orders'
 
@@ -120,6 +125,8 @@ class Order(Base):
     number = Column(String(5))
     status = Column(Enum(OrderStatus))
     createdTime = Column(DateTime)
+    type = Column(Enum(OrderType))
+    deliveryRoom = Column(String(64))
     userId = Column(String(9), ForeignKey('users.id', ondelete='SET NULL'))
     user = relationship('User', back_populates='orders')
 
