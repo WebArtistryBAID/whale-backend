@@ -170,3 +170,16 @@ def delete_order(session: Session, order: Order):
 
 def get_settings(session: Session, key: str):
     return session.query(SettingItem).filter(SettingItem.key == key).one_or_none()
+
+
+def update_settings(session: Session, key: str, value: str):
+    setting = get_settings(session, key)
+    if setting is None:
+        setting = SettingItem(key=key, value=value)
+        session.add(setting)
+    elif value is None:
+        session.delete(setting)
+    else:
+        setting.value = value
+    session.commit()
+    return value

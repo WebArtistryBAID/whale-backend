@@ -37,7 +37,8 @@ def get_category(id: int, db: Session = Depends(get_db)):
 
 @router.get("/settings", response_model=str)
 def get_setting(key: str, db: Session = Depends(get_db)):
-    return crud.ensure_not_none(crud.get_settings(db, key)).value
+    setting = crud.get_settings(db, key)
+    return "0" if setting is None else setting.value
 
 
 @router.get("/order", response_model=OrderSchema)

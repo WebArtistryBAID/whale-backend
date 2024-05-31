@@ -19,6 +19,13 @@ from utils.dependencies import get_current_user, get_db
 router = APIRouter()
 
 
+@router.get("/settings/update", response_model=str)
+def update_settings(key: str, value: str, user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
+    if "admin.manage" not in user.permissions:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    return crud.update_settings(db, key, value)
+
+
 @router.get("/orders/available", response_model=list[OrderSchema])
 def available_orders(user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
     if "admin.manage" not in user.permissions:
