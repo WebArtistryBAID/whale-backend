@@ -44,7 +44,7 @@ def login_capture_token(redirect: str):
             const token = location.hash.replace('#', '')
             const match = token.match(/access_token=([^&]*)/)
             if (match && match[1]) {
-                window.location.replace(`""" + os.environ["API_HOST"] + """/login/exchange/?token=encodeURIComponent(${match[1]})&redirect=encodeURIComponent(""" + redirect + """)`)
+                window.location.replace(`""" + os.environ["API_HOST"] + """/login/exchange/?token=${encodeURIComponent(match[1])}&redirect=${encodeURIComponent('""" + redirect + """')}`)
             }
         } else {
             window.location.replace('""" + os.environ["API_HOST"] + """/login/exchange/?error=error')
