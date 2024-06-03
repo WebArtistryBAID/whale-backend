@@ -44,10 +44,10 @@ def login_capture_token(redirect: str):
             const token = location.hash.replace('#', '')
             const match = token.match(/access_token=([^&]*)/)
             if (match && match[1]) {
-                location.href = `""" + os.environ["API_HOST"] + """/login/exchange/?token=${match[1]}&redirect=""" + redirect + """`
+                location.href = `""" + urllib.parse.urlparse(os.environ["API_HOST"]).path + """/login/exchange/?token=${match[1]}&redirect=""" + redirect + """`
             }
         } else {
-            location.href = '""" + os.environ["API_HOST"] + """/login/exchange/?error=error'
+            location.href = '""" + urllib.parse.urlparse(os.environ["API_HOST"]).path + """/login/exchange/?error=error'
         }
     </script>
 </body>
