@@ -39,7 +39,7 @@ def login_capture_token(redirect: str):
     <title>Please wait...</title>
 </head>
 <body>
-    <script>
+    <script>    
         if (location.hash.includes('access_token')) {
             const token = location.hash.replace('#', '')
             const match = token.match(/access_token=([^&]*)/)

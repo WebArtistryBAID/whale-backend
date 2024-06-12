@@ -99,6 +99,8 @@ def cancel_order(id: int, user: Annotated[User, Depends(get_current_user)], db: 
 
 @router.post("/order", response_model=OrderSchema)
 def order(order: OrderCreateSchema, user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
+    if order.onSiteOrder and not "admin.manage" in user.permissions:
+        raise HTTPException(status_code=403, detail="Permissions denied")
     return crud.create_order(db, order, user)
 
 

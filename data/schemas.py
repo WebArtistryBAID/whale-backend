@@ -109,7 +109,7 @@ class OrderSchema(BaseModel):
     createdTime: datetime
     type: str  # pickUp, delivery
     deliveryRoom: str | None
-    user: UserSchema
+    user: UserSchema | None
     items: List[OrderedItemSchema]
 
     class Config:
@@ -125,6 +125,7 @@ class OrderCreateSchema(BaseModel):
     type: str  # pickUp, delivery
     deliveryRoom: str | None
     items: List[OrderedItemCreateSchema]
+    onSiteOrder: bool
 
 
 class OrderEstimateSchema(BaseModel):
