@@ -4,7 +4,7 @@ This is the backend for the ordering system for BAID's Whale Cafe. Built with Fa
 
 ## Get Started
 
-To run in production, follow the tutorial under [BAIDWebDev](https://github.com/BAIDWebDev)/[**whale-docker**](https://github.com/BAIDWebDev/whale-docker).
+To run in production, follow the tutorial under [WebCraftsBAID](https://github.com/WebCraftsBAID)/[**whale-docker**](https://github.com/WebCraftsBAID/whale-docker).
 
 To run in development:
 
