@@ -8,7 +8,7 @@ To run in production, follow the tutorial under [WebArtistryBAID](https://github
 
 To run in development:
 
-* Ensure that you have Python available.
+* Ensure that you have at least Python 3.12 available.
 * Clone the repository.
 * Run `pip install -r requirements.txt`.
 * Export the environment variable `DATABASE_URL`, and set it to the database that you want to use (typically `sqlite:///database.db`). You need to do this every time before running.
