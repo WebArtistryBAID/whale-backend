@@ -1,10 +1,10 @@
 import enum
 
+from fastapi_storages.integrations.sqlalchemy import FileType
 from sqlalchemy import Boolean, Column, Integer, String, ForeignKey, DECIMAL, Enum, DateTime, Table
 from sqlalchemy.orm import relationship
 
-from data.database import Base
-
+from data.database import Base, storage
 
 orderedItemOptionAssoc = Table('ordered_item_option_association', Base.metadata,
                                Column('ordered_item_id', Integer, ForeignKey('ordereditems.id', ondelete='CASCADE'),
@@ -38,7 +38,10 @@ class User(Base):
     pinyin = Column(String(255))
     phone = Column(String(255))
     permissions = Column(String(1024), default="")
-    orders = relationship('Order', back_populates='user', lazy='dynamic')
+    orders = relationship('Order', back_populates='user')
+
+    def __str__(self):
+        return self.name + ' (' + self.pinyin + ')'
 
 
 class Category(Base):
@@ -46,7 +49,10 @@ class Category(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(12))
-    items = relationship('ItemType', back_populates='category', lazy='dynamic')
+    items = relationship('ItemType', back_populates='category')
+
+    def __str__(self):
+        return self.name
 
 
 class Tag(Base):
@@ -55,6 +61,9 @@ class Tag(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(20))
     color = Column(String(10))
+
+    def __str__(self):
+        return self.name
 
 
 class OptionItem(Base):
@@ -67,13 +76,19 @@ class OptionItem(Base):
     isDefault = Column(Boolean, default=False, nullable=False)
     priceChange = Column(DECIMAL(5, 2))
 
+    def __str__(self):
+        return self.name
+
 
 class OptionType(Base):
     __tablename__ = 'optiontypes'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(20))
-    items = relationship('OptionItem', back_populates='type', lazy='dynamic', foreign_keys=[OptionItem.typeId])
+    items = relationship('OptionItem', back_populates='type', foreign_keys=[OptionItem.typeId])
+
+    def __str__(self):
+        return self.name
 
 
 class ItemType(Base):
@@ -83,13 +98,16 @@ class ItemType(Base):
     categoryId = Column(Integer, ForeignKey('categories.id', ondelete='CASCADE'))
     category = relationship('Category', back_populates='items')
     name = Column(String(20))
-    image = Column(String(1024))
+    image = Column(FileType(storage=storage))
     tags = relationship('Tag', secondary=tagItemTypeAssoc)
     description = Column(String(256))
     shortDescription = Column(String(256))
     options = relationship('OptionType', secondary=itemOptionAssociation)
     basePrice = Column(DECIMAL(5, 2))
     salePercent = Column(DECIMAL(5, 2))
+
+    def __str__(self):
+        return self.name
 
 
 class OrderedItem(Base):
@@ -120,7 +138,7 @@ class Order(Base):
     __tablename__ = 'orders'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    items = relationship('OrderedItem', back_populates='order', lazy='dynamic')
+    items = relationship('OrderedItem', back_populates='order')
     totalPrice = Column(DECIMAL(5, 2))
     number = Column(String(5))
     status = Column(Enum(OrderStatus))

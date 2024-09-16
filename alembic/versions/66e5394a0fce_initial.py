@@ -1,18 +1,19 @@
 """initial
 
-Revision ID: ac2024daa9b7
+Revision ID: 66e5394a0fce
 Revises: 
-Create Date: 2024-05-31 12:19:34.117884
+Create Date: 2024-09-16 14:48:29.027721
 
 """
 from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
-
+import fastapi_storages.integrations.sqlalchemy
+from fastapi_storages import FileSystemStorage
 
 # revision identifiers, used by Alembic.
-revision: str = 'ac2024daa9b7'
+revision: str = '66e5394a0fce'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -53,7 +54,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('categoryId', sa.Integer(), nullable=True),
     sa.Column('name', sa.String(length=20), nullable=True),
-    sa.Column('image', sa.String(length=1024), nullable=True),
+    sa.Column('image', fastapi_storages.integrations.sqlalchemy.FileType(storage=FileSystemStorage("uploads")), nullable=True),
     sa.Column('description', sa.String(length=256), nullable=True),
     sa.Column('shortDescription', sa.String(length=256), nullable=True),
     sa.Column('basePrice', sa.DECIMAL(precision=5, scale=2), nullable=True),
