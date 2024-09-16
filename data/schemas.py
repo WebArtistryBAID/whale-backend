@@ -142,6 +142,13 @@ class SettingItemSchema(BaseModel):
     value: str
 
 
+class AdSchema(BaseModel):
+    id: int
+    name: str
+    image: str
+    url: str
+
+
 class StatsAggregateSchema(BaseModel):
     todayRevenue: Decimal
     todayUniqueUsers: int

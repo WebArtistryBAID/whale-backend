@@ -57,6 +57,10 @@ def get_category(session: Session, category_id: int):
     return session.query(Category).filter(Category.id == category_id).one_or_none()
 
 
+def get_ads(session: Session):
+    return session.query(Ad).all()
+
+
 def get_tags(session: Session):
     return session.query(Tag).all()
 

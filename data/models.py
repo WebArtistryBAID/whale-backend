@@ -150,6 +150,14 @@ class Order(Base):
     user = relationship('User', back_populates='orders')
 
 
+class Ad(Base):
+    __tablename__ = 'ads'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(256))
+    image = Column(FileType(storage=storage))
+    url = Column(String(1024))
+
+
 class SettingItem(Base):
     __tablename__ = 'settingsitems'
 

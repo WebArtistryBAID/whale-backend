@@ -6,7 +6,7 @@ from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy.orm import Session
 
 from data.models import OrderStatus, Order, User
-from data.schemas import ItemTypeSchema, CategorySchema, OrderSchema, OrderEstimateSchema, OrderCreateSchema
+from data.schemas import ItemTypeSchema, CategorySchema, OrderSchema, OrderEstimateSchema, OrderCreateSchema, AdSchema
 from utils import crud
 from utils.dependencies import get_db, get_current_user
 
@@ -113,3 +113,8 @@ def user_orders(user: Annotated[User, Depends(get_current_user)], db: Session = 
     if user.blocked:
         raise HTTPException(status_code=403, detail="User is blocked")
     return paginate(db, crud.get_orders_query_by_user(user.id))
+
+
+@router.get("/ads", response_model=list[AdSchema])
+def ads(db: Session = Depends(get_db)):
+    return crud.get_ads(db)

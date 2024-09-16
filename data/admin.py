@@ -6,7 +6,7 @@ from sqladmin import Admin, ModelView
 from sqladmin.authentication import AuthenticationBackend
 from starlette.requests import Request
 
-from data.models import Category, Tag, OptionItem, OptionType, ItemType, User
+from data.models import Category, Tag, OptionItem, OptionType, ItemType, User, Ad
 
 
 class AdminAuth(AuthenticationBackend):
@@ -100,6 +100,16 @@ class UserAdmin(ModelView, model=User):
     can_create = False
 
 
+class AdAdmin(ModelView, model=Ad):
+    column_list = [Ad.name, Ad.image, Ad.url]
+    column_searchable_list = [Ad.name]
+    column_labels = {
+        Ad.name: 'Name (Not Shown)',
+        Ad.image: 'Image',
+        Ad.url: 'URL'
+    }
+
+
 def create_admin(app, engine):
     admin = Admin(app, engine, authentication_backend=AdminAuth(secret_key='what-you-love-is-your-life'))
     admin.add_view(CategoryAdmin)
@@ -108,4 +118,5 @@ def create_admin(app, engine):
     admin.add_view(OptionTypeAdmin)
     admin.add_view(ItemTypeAdmin)
     admin.add_view(UserAdmin)
+    admin.add_view(AdAdmin)
     return admin
