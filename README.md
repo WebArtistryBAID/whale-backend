@@ -11,14 +11,25 @@ To run in development:
 * Ensure that you have at least Python 3.12 available.
 * Clone the repository.
 * Run `pip install -r requirements.txt`.
-* Export the environment variable `DATABASE_URL`, and set it to the database that you want to use (typically `sqlite:///database.db`). You need to do this every time before running.
-* Export the environment variable `API_HOST`, which is the full URL on which this API is running on. For example, `https://example.com/api`. No slashes are needed at the end.
-* Export the environment variable `FRONTEND_HOST`, which is the full URL on which the frontend is hosted. For example, `https://example.com`. No slashes are needed at the end.
-* Export the environment variable `JWT_SECRET_KEY`, and set it to the JWT secret key that you want to use. You will need to do this every time before running. You can use `openssl rand -hex 32` to generate a secret key.
-* Export the environment variable `SEIUE_CLIENT_ID`, and set it to the client ID received from SEIUE for authentication. Same for `SEIUE_CLIENT_SECRET`.
-* Export the environment variable `DEVELOPMENT` to `true` if you want to bypass CORS protections and enable certain development-only features.
+* Export all the following environment variables:
+
+| Name              | Description                                                                            |
+|-------------------|----------------------------------------------------------------------------------------|
+| `DATABASE_URL`    | The database URL to use. Typically `sqlite:///database.db`.                            |
+| `API_HOST`        | The full URL on which this API is running on, no trailing slash.                       |
+| `FRONTEND_HOST`   | The full URL on which the frontend is hosted, no trailing slash.                       |
+| `JWT_SECRET_KEY`  | The JWT secret key to use. You can generate one with `openssl rand -hex 32`.           |
+| `SEIUE_CLIENT_ID` | The client ID received from SEIUE for authentication.                                  |
+| `DEVELOPMENT`     | Set to `true` to bypass CORS protections and enable certain development-only features. |
+
 * Run `alembic upgrade head` to apply database migrations. You only need to do this when new migrations are released.
 * Run `python -m uvicorn main:app --reload`.
+
+## Integrated Services
+
+Project Whale is integrated with certain third-party service providers:
+
+* SEIUE, for user authentication
 
 ## Permissions
 
@@ -34,7 +45,7 @@ To contribute, simply open a pull request.
 
 ```
     Whale is BAID's Whale Cafe's ordering system.
-    Copyright (C) 2024  BAID Web Dev Team
+    Copyright (C) 2024  Team WebArtistry
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
