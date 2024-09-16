@@ -97,6 +97,14 @@ def me(user: Annotated[User, Depends(get_current_user)]):
     return user
 
 
+@router.get("/me/canorder", response_model=bool)
+def me_can_order(user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
+    for o in crud.get_orders_by_user(db, user.id):
+        if o.status != OrderStatus.pickedUp:
+            return False
+    return True
+
+
 @router.get("/me/statistics", response_model=UserStatisticsSchema)
 def me_statistics(user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
     if user.blocked:
