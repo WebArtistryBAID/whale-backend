@@ -34,7 +34,7 @@ Project Whale is integrated with certain third-party service providers:
 ## Permissions
 
 Some users have specific permissions that allow them to access more features. These include:
-* `admin.statistics`: Allows viewing statistics aggregates.
+* `admin.cms`: Allow entering CMS.
 * `admin.manage`: Allows managing orders.
 
 ## Contribution

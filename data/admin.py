@@ -1,6 +1,35 @@
+import os
+from datetime import datetime
+
+from jose import jwt
 from sqladmin import Admin, ModelView
+from sqladmin.authentication import AuthenticationBackend
+from starlette.requests import Request
 
 from data.models import Category, Tag, OptionItem, OptionType, ItemType
+
+
+class AdminAuth(AuthenticationBackend):
+    async def login(self, request: Request) -> bool:
+        # We expect users to be already authenticated through the frontend
+        return False
+
+    async def logout(self, request: Request) -> bool:
+        return False
+
+    async def authenticate(self, request: Request) -> bool:
+        token = request.cookies.get('token')
+
+        if not token:
+            return False
+
+        result = jwt.decode(token, key=os.environ['JWT_SECRET_KEY'], algorithms=['HS256'])
+        result['exp'] = datetime.fromtimestamp(result['exp'])
+        if datetime.now() > result['exp']:
+            return False
+        if 'admin.cms' not in result['permissions']:
+            return False
+        return True
 
 
 class CategoryAdmin(ModelView, model=Category):
@@ -52,7 +81,7 @@ class ItemTypeAdmin(ModelView, model=ItemType):
 
 
 def create_admin(app, engine):
-    admin = Admin(app, engine)
+    admin = Admin(app, engine, authentication_backend=AdminAuth(secret_key='what-you-love-is-your-life'))
     admin.add_view(CategoryAdmin)
     admin.add_view(TagAdmin)
     admin.add_view(OptionItemAdmin)
