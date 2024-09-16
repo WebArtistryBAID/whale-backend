@@ -6,16 +6,16 @@ from sqladmin import Admin, ModelView
 from sqladmin.authentication import AuthenticationBackend
 from starlette.requests import Request
 
-from data.models import Category, Tag, OptionItem, OptionType, ItemType
+from data.models import Category, Tag, OptionItem, OptionType, ItemType, User
 
 
 class AdminAuth(AuthenticationBackend):
     async def login(self, request: Request) -> bool:
         # We expect users to be already authenticated through the frontend
-        return False
+        return await self.authenticate(request)
 
     async def logout(self, request: Request) -> bool:
-        return False
+        return True
 
     async def authenticate(self, request: Request) -> bool:
         token = request.cookies.get('token')
@@ -34,6 +34,7 @@ class AdminAuth(AuthenticationBackend):
 
 class CategoryAdmin(ModelView, model=Category):
     column_list = [Category.name]
+    column_searchable_list = [Category.name]
     name_plural = 'Categories'
     column_labels = {
         Category.name: 'Name'
@@ -42,6 +43,7 @@ class CategoryAdmin(ModelView, model=Category):
 
 class TagAdmin(ModelView, model=Tag):
     column_list = [Tag.name, Tag.color]
+    column_searchable_list = [Tag.name]
     column_labels = {
         Tag.name: 'Name',
         Tag.color: 'Color (#ffffff)'
@@ -50,6 +52,7 @@ class TagAdmin(ModelView, model=Tag):
 
 class OptionItemAdmin(ModelView, model=OptionItem):
     column_list = [OptionItem.name, OptionItem.priceChange, OptionItem.type, OptionItem.isDefault]
+    column_searchable_list = [OptionItem.name]
     column_labels = {
         OptionItem.name: 'Name',
         OptionItem.priceChange: 'Price Change',
@@ -60,6 +63,7 @@ class OptionItemAdmin(ModelView, model=OptionItem):
 
 class OptionTypeAdmin(ModelView, model=OptionType):
     column_list = [OptionType.name]
+    column_searchable_list = [OptionType.name]
     column_labels = {
         OptionType.name: 'Name'
     }
@@ -67,6 +71,7 @@ class OptionTypeAdmin(ModelView, model=OptionType):
 
 class ItemTypeAdmin(ModelView, model=ItemType):
     column_list = [ItemType.category, ItemType.name, ItemType.image, ItemType.tags, ItemType.description, ItemType.shortDescription, ItemType.basePrice, ItemType.salePercent, ItemType.options]
+    column_searchable_list = [ItemType.name]
     column_labels = {
         ItemType.category: 'Category',
         ItemType.name: 'Name',
@@ -80,6 +85,21 @@ class ItemTypeAdmin(ModelView, model=ItemType):
     }
 
 
+class UserAdmin(ModelView, model=User):
+    column_list = [User.id, User.name, User.pinyin, User.phone, User.permissions, User.blocked]
+    column_searchable_list = [User.id, User.name, User.pinyin]
+    column_labels = {
+        User.id: 'ID',
+        User.name: 'Name',
+        User.pinyin: 'Name (Pinyin)',
+        User.phone: 'Phone Number',
+        User.permissions: 'Permissions',
+        User.blocked: 'Blocked'
+    }
+
+    can_create = False
+
+
 def create_admin(app, engine):
     admin = Admin(app, engine, authentication_backend=AdminAuth(secret_key='what-you-love-is-your-life'))
     admin.add_view(CategoryAdmin)
@@ -87,4 +107,5 @@ def create_admin(app, engine):
     admin.add_view(OptionItemAdmin)
     admin.add_view(OptionTypeAdmin)
     admin.add_view(ItemTypeAdmin)
+    admin.add_view(UserAdmin)
     return admin

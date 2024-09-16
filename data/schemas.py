@@ -10,6 +10,7 @@ class UserSchema(BaseModel):
     name: str
     permissions: str
     pinyin: str | None
+    blocked: bool
 
     class Config:
         from_attributes = True

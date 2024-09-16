@@ -99,6 +99,8 @@ def me(user: Annotated[User, Depends(get_current_user)]):
 
 @router.get("/me/statistics", response_model=UserStatisticsSchema)
 def me_statistics(user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
+    if user.blocked:
+        raise HTTPException(status_code=403, detail='User is blocked')
     orders = crud.get_orders_by_user(db, user.id)
     orders_amount = len(orders)
     total_spent = Decimal(0)
@@ -120,6 +122,8 @@ def me_statistics(user: Annotated[User, Depends(get_current_user)], db: Session 
 
 @router.delete("/me", response_model=bool)
 def delete_me(user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
+    if user.blocked:
+        raise HTTPException(status_code=403, detail='User is blocked')
     orders = crud.get_orders_by_user(db, user.id)
     for order in orders:
         if order.status != OrderStatus.pickedUp:

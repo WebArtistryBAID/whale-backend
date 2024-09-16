@@ -90,6 +90,8 @@ def estimate(id: int | None = None, db: Session = Depends(get_db)):
 
 @router.delete("/order", response_model=bool)
 def cancel_order(id: int, user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
+    if user.blocked:
+        raise HTTPException(status_code=403, detail="User is blocked")
     order = crud.ensure_not_none(crud.get_order(db, id))
     if (order.status == OrderStatus.notStarted and order.userId == user.id) or "admin.manage" in user.permissions:
         crud.delete_order(db, order)
@@ -99,6 +101,8 @@ def cancel_order(id: int, user: Annotated[User, Depends(get_current_user)], db: 
 
 @router.post("/order", response_model=OrderSchema)
 def order(order: OrderCreateSchema, user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
+    if user.blocked:
+        raise HTTPException(status_code=403, detail="User is blocked")
     if order.onSiteOrder and not "admin.manage" in user.permissions:
         raise HTTPException(status_code=403, detail="Permissions denied")
     return crud.create_order(db, order, user)
@@ -106,4 +110,6 @@ def order(order: OrderCreateSchema, user: Annotated[User, Depends(get_current_us
 
 @router.get("/orders", response_model=Page[OrderSchema])
 def user_orders(user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
+    if user.blocked:
+        raise HTTPException(status_code=403, detail="User is blocked")
     return paginate(db, crud.get_orders_query_by_user(user.id))

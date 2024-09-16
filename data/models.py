@@ -38,6 +38,7 @@ class User(Base):
     pinyin = Column(String(255))
     phone = Column(String(255))
     permissions = Column(String(1024), default="")
+    blocked = Column(Boolean, default=False)
     orders = relationship('Order', back_populates='user')
 
     def __str__(self):
