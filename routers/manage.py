@@ -11,7 +11,7 @@ from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 from starlette.responses import Response
 
-from data.models import User, Order
+from data.models import User, Order, OrderType, OrderStatus
 from data.schemas import OrderSchema, OrderStatusUpdateSchema, StatsAggregateSchema
 from utils import crud
 from utils.dependencies import get_current_user, get_db
@@ -143,22 +143,83 @@ def get_statistics(by: str, limit: int, db: Session) -> StatsAggregateSchema:
 
 
 @router.get("/statistics/export/token", response_model=str)
-def statistics_export_token(by: str, limit: int, user: Annotated[User, Depends(get_current_user)]):
-    if "admin.statistics" not in user.permissions:
+def statistics_export_token(type: str, by: str, limit: int, user: Annotated[User, Depends(get_current_user)]):
+    if "admin.cms" not in user.permissions:
         raise HTTPException(status_code=403, detail="Permission denied")
-    return jwt.encode({"type": "statsExport", "by": by, "limit": limit, "exp": datetime.now(timezone.utc) + timedelta(minutes=15)}, key=os.environ["JWT_SECRET_KEY"], algorithm="HS256")
+    return jwt.encode({"type": type, "by": by, "limit": limit, "exp": datetime.now(timezone.utc) + timedelta(minutes=15)}, key=os.environ["JWT_SECRET_KEY"], algorithm="HS256")
 
 
 @router.get("/statistics/export")
 def statistics_export(token: str, db: Session = Depends(get_db)):
     try:
         payload = jwt.decode(token, os.environ["JWT_SECRET_KEY"], algorithms=["HS256"])
-        if payload["type"] != "statsExport":
-            raise HTTPException(status_code=403, detail="Invalid export token")
+        type = payload["type"]
         by = payload["by"]
         limit = payload["limit"]
     except JWTError | KeyError:
         raise HTTPException(status_code=403, detail="Invalid export token")
+
+    if type == "statsExport":
+        return export_statistics(by, limit, db)
+    elif type == "ordersExport":
+        return export_orders(limit, db)
+    raise HTTPException(status_code=401, detail="Bad export type")
+
+
+def export_orders(limit: int, db: Session):
+    orders = db.query(Order).filter(Order.createdTime >= (datetime.now() - timedelta(days=limit))).order_by(
+        Order.createdTime.desc()).all()
+
+    output = BytesIO()
+    workbook = xlsxwriter.Workbook(output)
+    ws = workbook.add_worksheet("Orders")
+    ws.write(0, 0, "ID")
+    ws.write(0, 1, "Created Time")
+    ws.write(0, 2, "Total Price")
+    ws.write(0, 3, "User ID")
+    ws.write(0, 4, "User Name")
+    ws.write(0, 5, "Status")
+    ws.write(0, 6, "Type")
+    ws.write(0, 7, "Delivery Room")
+    ws.write(0, 8, "Items")
+
+    row = 1
+    for order in orders:
+        ws.write(row, 0, order.id)
+        ws.write(row, 1, order.createdTime.strftime("%Y-%m-%d %H:%M:%S"))
+        ws.write(row, 2, str(order.totalPrice))
+        ws.write(row, 3, order.userId if order.userId is not None else "On-Site Ordering")
+        ws.write(row, 4, order.user.name if order.userId is not None else "On-Site Ordering")
+        ws.write(row, 5, {
+            OrderStatus.notStarted: "Not Started",
+            OrderStatus.inProgress: "In Progress",
+            OrderStatus.ready: "Ready",
+            OrderStatus.pickedUp: "Picked Up"
+        }[order.status])
+        ws.write(row, 6, {
+            OrderType.pickUp: "Pick Up",
+            OrderType.delivery: "Delivery"
+        }[order.type])
+        ws.write(row, 7, order.deliveryRoom if order.type == OrderType.delivery else "N/A")
+        items = []
+        for item in order.items:
+            options = []
+            for option in item.appliedOptions:
+                options.append(option.type.name + ": " + option.name)
+            items.append(f"{item.amount}x {item.itemType.name} ({', '.join(options)})")
+        ws.write(row, 8, "\n".join(items))
+        row += 1
+    workbook.close()
+    return Response(
+        output.getvalue(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": "inline; filename=\"exported-orders.xlsx\""
+        }
+    )
+
+
+def export_statistics(by: str, limit: int, db: Session):
     stats = get_statistics(by, limit, db)
 
     output = BytesIO()
@@ -209,6 +270,6 @@ def statistics_export(token: str, db: Session = Depends(get_db)):
 
 @router.get("/statistics", response_model=StatsAggregateSchema)
 def statistics(by: str, user: Annotated[User, Depends(get_current_user)], limit: int = 90, db: Session = Depends(get_db)):
-    if "admin.statistics" not in user.permissions:
+    if "admin.cms" not in user.permissions:
         raise HTTPException(status_code=403, detail="Permission denied")
     return get_statistics(by, limit, db)
