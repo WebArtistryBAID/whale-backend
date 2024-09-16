@@ -105,9 +105,10 @@ def order(order: OrderCreateSchema, user: Annotated[User, Depends(get_current_us
         raise HTTPException(status_code=403, detail="User is blocked")
     if order.onSiteOrder and "admin.manage" not in user.permissions:
         raise HTTPException(status_code=403, detail="Permissions denied")
-    for o in crud.get_orders_by_user(db, user.id):
-        if o.status != OrderStatus.pickedUp:
-            raise HTTPException(status_code=403, detail="User has an active order")
+    if not order.onSiteOrder:
+        for o in crud.get_orders_by_user(db, user.id):
+            if o.status != OrderStatus.pickedUp:
+                raise HTTPException(status_code=403, detail="User has an active order")
     return crud.create_order(db, order, user)
 
 
