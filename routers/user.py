@@ -77,7 +77,7 @@ def login_token_redirect(redirect: str, error: str | None = None, token: str | N
     encoded = jwt.encode(to_encode, key=os.environ["JWT_SECRET_KEY"], algorithm="HS256")
 
     response = RedirectResponse(redirect + "?token=" + urllib.parse.quote(encoded, safe="") + "&name=" + urllib.parse.quote(data["name"], safe=""), status_code=302)
-    response.set_cookie("token", encoded, httponly=True)
+    response.set_cookie("token", encoded, httponly=True, expires=datetime.now(timezone.utc) + timedelta(days=30))
     return response
 
 
