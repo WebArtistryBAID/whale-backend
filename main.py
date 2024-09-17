@@ -1,4 +1,5 @@
 import os
+import urllib.parse
 
 from fastapi import FastAPI
 from fastapi_pagination import add_pagination
@@ -9,7 +10,7 @@ from data.admin import create_admin
 from data.database import engine
 from routers import user, api, manage
 
-app = FastAPI()
+app = FastAPI(root_path=urllib.parse.urlparse(os.environ['API_HOST']).path)
 
 if os.environ.get("DEVELOPMENT") == "true":
     app.add_middleware(
