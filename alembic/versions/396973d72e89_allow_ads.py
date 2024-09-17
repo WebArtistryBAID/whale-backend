@@ -24,7 +24,7 @@ def upgrade() -> None:
     op.create_table('ads',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('name', sa.String(length=256), nullable=True),
-    sa.Column('image', fastapi_storages.integrations.sqlalchemy.FileType(storage=FileSystemStorage("uploads")), nullable=True),
+    sa.Column('image', fastapi_storages.integrations.sqlalchemy.FileType(storage=FileSystemStorage("uploads"), length=2048), nullable=True),
     sa.Column('url', sa.String(length=1024), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )

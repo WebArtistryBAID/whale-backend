@@ -54,7 +54,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('categoryId', sa.Integer(), nullable=True),
     sa.Column('name', sa.String(length=20), nullable=True),
-    sa.Column('image', fastapi_storages.integrations.sqlalchemy.FileType(storage=FileSystemStorage("uploads")), nullable=True),
+    sa.Column('image', fastapi_storages.integrations.sqlalchemy.FileType(storage=FileSystemStorage("uploads"), length=2048), nullable=True),
     sa.Column('description', sa.String(length=256), nullable=True),
     sa.Column('shortDescription', sa.String(length=256), nullable=True),
     sa.Column('basePrice', sa.DECIMAL(precision=5, scale=2), nullable=True),
