@@ -1,4 +1,5 @@
 import os
+import urllib.parse
 from datetime import datetime
 
 from jose import jwt
@@ -111,7 +112,10 @@ class AdAdmin(ModelView, model=Ad):
 
 
 def create_admin(app, engine):
-    admin = Admin(app, engine, authentication_backend=AdminAuth(secret_key='what-you-love-is-your-life'))
+    admin = Admin(app, engine,
+                  authentication_backend=AdminAuth(secret_key='what-you-love-is-your-life'),
+                  base_url=urllib.parse.urlparse(os.environ['API_HOST']).path + '/admin',
+                  title='Whale CMS')
     admin.add_view(CategoryAdmin)
     admin.add_view(TagAdmin)
     admin.add_view(OptionItemAdmin)
