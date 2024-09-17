@@ -109,7 +109,12 @@ def order(order: OrderCreateSchema, user: Annotated[User, Depends(get_current_us
         for o in crud.get_orders_by_user(db, user.id):
             if o.status != OrderStatus.pickedUp:
                 raise HTTPException(status_code=403, detail="User has an active order")
-    return crud.create_order(db, order, user)
+    result = crud.create_order(db, order, user)
+    # TODO Make this into a setting
+    if result.number == "011":
+        # Automatically end ordering when we reach 11 orders (maximum capacity)
+        crud.update_settings(db, "shop-open", "0")
+    return result
 
 
 @router.get("/orders", response_model=Page[OrderSchema])
