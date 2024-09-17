@@ -119,6 +119,6 @@ def user_orders(user: Annotated[User, Depends(get_current_user)], db: Session = 
     return paginate(db, crud.get_orders_query_by_user(user.id))
 
 
-@router.get("/ads", response_model=list[AdSchema])
+@router.get("/pms", response_model=list[AdSchema])
 def ads(db: Session = Depends(get_db)):
     return crud.get_ads(db)

@@ -30,4 +30,12 @@ app.include_router(manage.router)
 app.include_router(user.router)
 create_admin(app, engine)
 
+
+@app.middleware("http")
+async def fix_admin_root_path(request, call_next):
+    if request.url.path.startswith("/admin/"):
+        request.scope["path"] = app.root_path + request.url.path
+    return await call_next(request)
+
+
 add_pagination(app)
