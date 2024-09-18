@@ -126,6 +126,10 @@ def get_orders_query_by_user(user_id: str):
     return select(Order).filter(Order.userId == user_id).order_by(Order.createdTime.desc())
 
 
+def get_orders_by_date(session: Session, date: datetime.datetime):
+    return session.query(Order).filter(Order.createdTime >= date).filter(Order.createdTime < date + datetime.timedelta(days=1)).all()
+
+
 def get_orders_by_user(session: Session, user_id: str):
     return session.query(Order).filter(Order.userId == user_id).order_by(Order.createdTime.desc()).all()
 
