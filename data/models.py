@@ -122,6 +122,9 @@ class OrderedItem(Base):
     appliedOptions = relationship('OptionItem', secondary=orderedItemOptionAssoc)
     amount = Column(Integer)
 
+    def __str__(self):
+        return self.itemType.name + ' x' + str(self.amount) + ' (' + ', '.join([option.name for option in self.appliedOptions]) + ')'
+
 
 class OrderStatus(enum.Enum):
     notStarted = 'notStarted'

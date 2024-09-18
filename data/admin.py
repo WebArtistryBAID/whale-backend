@@ -6,7 +6,7 @@ from sqladmin import Admin, ModelView
 from sqladmin.authentication import AuthenticationBackend
 from starlette.requests import Request
 
-from data.models import Category, Tag, OptionItem, OptionType, ItemType, User, Ad
+from data.models import Category, Tag, OptionItem, OptionType, ItemType, User, Ad, Order
 
 
 class AdminAuth(AuthenticationBackend):
@@ -108,6 +108,28 @@ class AdAdmin(ModelView, model=Ad):
         Ad.image: 'Image',
         Ad.url: 'URL'
     }
+
+
+class OrderAdmin(ModelView, model=Order):
+    column_list = [Order.id, Order.items, Order.totalPrice, Order.number, Order.status, Order.createdTime, Order.type, Order.deliveryRoom, Order.user, Order.onSiteName]
+    column_searchable_list = [Order.id]
+    column_labels = {
+        Order.id: 'ID',
+        Order.items: 'Items Ordered',
+        Order.totalPrice: 'Total Price',
+        Order.number: 'Number',
+        Order.status: 'Status',
+        Order.createdTime: 'Created Time',
+        Order.type: 'Type',
+        Order.deliveryRoom: 'Delivery Room',
+        Order.user: 'Ordered By',
+        Order.onSiteName: 'Name (for on-site ordering)'
+    }
+
+    can_create = False
+    can_delete = False
+    can_edit = False
+    can_export = False
 
 
 def create_admin(app, engine):
