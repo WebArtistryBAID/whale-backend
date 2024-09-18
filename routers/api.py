@@ -44,7 +44,7 @@ def get_setting(key: str, db: Session = Depends(get_db)):
     # TODO I think putting this here is really bad. Why are we mixing all the "settings"?
     if key == "shop-open":
         now = datetime.datetime.now(tz=TIME_ZONE)
-        if now.hour >= 10:
+        if 10 <= now.hour <= 12:
             crud.update_settings(db, "shop-open", "1")
             return "1"
     return "0" if setting is None else setting.value
