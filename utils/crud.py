@@ -151,7 +151,7 @@ def create_order(session: Session, schema: OrderCreateSchema, user: User):
         createdTime=datetime.datetime.now(tz=TIME_ZONE),
         type=schema.type,
         deliveryRoom=schema.deliveryRoom,
-        userId=user.id,
+        userId=user.id if user is not None else None,
         onSiteName=schema.onSiteName if schema.onSiteOrder else None
     )
     for item in schema.items:
