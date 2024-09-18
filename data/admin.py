@@ -143,4 +143,5 @@ def create_admin(app, engine):
     admin.add_view(ItemTypeAdmin)
     admin.add_view(UserAdmin)
     admin.add_view(AdAdmin)
+    admin.add_view(OrderAdmin)
     return admin
