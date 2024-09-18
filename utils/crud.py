@@ -159,7 +159,7 @@ def create_order(session: Session, schema: OrderCreateSchema, user: User):
     order.totalPrice = total_price
 
     latest = session.query(Order).order_by(Order.createdTime.desc()).first()
-    if latest is None or (datetime.datetime.today() - latest.createdTime).days > 0:
+    if latest is None or datetime.datetime.today().day != latest.createdTime.day:
         order.number = "001"
     else:
         order.number = str(int(latest.number) + 1).zfill(3)
