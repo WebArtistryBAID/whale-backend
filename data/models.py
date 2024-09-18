@@ -148,6 +148,7 @@ class Order(Base):
     deliveryRoom = Column(String(64))
     userId = Column(String(9), ForeignKey('users.id', ondelete='SET NULL'))
     user = relationship('User', back_populates='orders')
+    onSiteName = Column(String(255))
 
 
 class Ad(Base):

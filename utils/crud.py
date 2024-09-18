@@ -139,12 +139,20 @@ def get_available_orders(session: Session):
 
 
 def create_order(session: Session, schema: OrderCreateSchema, user: User):
+    # Try to match a user for on-site orders
+    if schema.onSiteOrder:
+        user = None
+        try_match = session.query(User).filter(User.name == schema.onSiteName).all()
+        if len(try_match) == 1:  # No ambiguity of names
+            user = try_match[0]
+
     order = Order(
         status=OrderStatus.notStarted,
         createdTime=datetime.datetime.now(tz=TIME_ZONE),
         type=schema.type,
         deliveryRoom=schema.deliveryRoom,
-        userId=None if schema.onSiteOrder else user.id
+        userId=user.id,
+        onSiteName=schema.onSiteName if schema.onSiteOrder else None
     )
     for item in schema.items:
         order.items.append(create_ordered_item(session, order.id, item))

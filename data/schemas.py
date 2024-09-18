@@ -112,6 +112,7 @@ class OrderSchema(BaseModel):
     deliveryRoom: str | None
     user: UserSchema | None
     items: List[OrderedItemSchema]
+    onSiteName: str | None
 
     class Config:
         from_attributes = True
@@ -127,6 +128,7 @@ class OrderCreateSchema(BaseModel):
     deliveryRoom: str | None
     items: List[OrderedItemCreateSchema]
     onSiteOrder: bool
+    onSiteName: str | None
 
 
 class OrderEstimateSchema(BaseModel):
