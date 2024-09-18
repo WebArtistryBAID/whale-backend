@@ -108,13 +108,25 @@ def cancel_order(id: int, user: Annotated[User, Depends(get_current_user)], db: 
     raise HTTPException(status_code=401, detail="Order already started")
 
 
+@router.get("/order/on-site-eligibility", response_model=bool)
+def on_site_eligibility(name: str, db: Session = Depends(get_db)):
+    orders = crud.get_orders_by_on_site_name(db, name)
+    for o in orders:
+        if o.status != OrderStatus.pickedUp:
+            return False
+    return True
+
+
 @router.post("/order", response_model=OrderSchema)
 def order(order: OrderCreateSchema, user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
     if user.blocked:
         raise HTTPException(status_code=403, detail="User is blocked")
     if order.onSiteOrder and "admin.manage" not in user.permissions:
         raise HTTPException(status_code=403, detail="Permissions denied")
-    if not order.onSiteOrder:
+    if order.onSiteOrder:
+        if not on_site_eligibility(order.onSiteName, db):
+            raise HTTPException(status_code=403, detail="User has an active order")
+    else:
         for o in crud.get_orders_by_user(db, user.id):
             if o.status != OrderStatus.pickedUp:
                 raise HTTPException(status_code=403, detail="User has an active order")

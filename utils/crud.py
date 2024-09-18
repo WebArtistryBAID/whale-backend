@@ -134,6 +134,10 @@ def get_orders_by_user(session: Session, user_id: str):
     return session.query(Order).filter(Order.userId == user_id).order_by(Order.createdTime.desc()).all()
 
 
+def get_orders_by_on_site_name(session: Session, on_site_name: str):
+    return session.query(Order).filter(Order.onSiteName == on_site_name).order_by(Order.createdTime.desc()).all()
+
+
 def get_available_orders(session: Session):
     return session.query(Order).filter(Order.status != OrderStatus.pickedUp).order_by(Order.createdTime.desc()).all()
 
