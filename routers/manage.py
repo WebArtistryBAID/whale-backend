@@ -182,6 +182,7 @@ def export_orders(limit: int, db: Session):
     ws.write(0, 6, "Type")
     ws.write(0, 7, "Delivery Room")
     ws.write(0, 8, "Items")
+    ws.write(0, 9, "On-Site Name")
 
     row = 1
     for order in orders:
@@ -208,6 +209,7 @@ def export_orders(limit: int, db: Session):
                 options.append(option.type.name + ": " + option.name)
             items.append(f"{item.amount}x {item.itemType.name} ({', '.join(options)})")
         ws.write(row, 8, "\n".join(items))
+        ws.write(row, 9, order.onSiteName if order.onSiteName is not None else "N/A")
         row += 1
     workbook.close()
     return Response(
