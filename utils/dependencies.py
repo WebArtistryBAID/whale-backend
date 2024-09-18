@@ -1,12 +1,17 @@
 import os
 from typing import Annotated
 
+import pytz
 from fastapi import Depends, HTTPException, Header
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 
 from utils import crud
 from data.database import SessionLocal
+
+TIME_ZONE = pytz.timezone("Asia/Shanghai")
+if "TIME_ZONE" in os.environ:
+    TIME_ZONE = pytz.timezone(os.environ["TIME_ZONE"])
 
 
 def get_db():

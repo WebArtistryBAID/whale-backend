@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from data.models import OrderStatus, Order, User
 from data.schemas import ItemTypeSchema, CategorySchema, OrderSchema, OrderEstimateSchema, OrderCreateSchema, AdSchema
 from utils import crud
-from utils.dependencies import get_db, get_current_user
+from utils.dependencies import get_db, get_current_user, TIME_ZONE
 
 router = APIRouter()
 
@@ -43,7 +43,7 @@ def get_setting(key: str, db: Session = Depends(get_db)):
     # Automatically enable ordering when we are past 10 a.m.
     # TODO I think putting this here is really bad. Why are we mixing all the "settings"?
     if key == "shop-open":
-        now = datetime.datetime.now()
+        now = datetime.datetime.now(tz=TIME_ZONE)
         if now.hour >= 10:
             crud.update_settings(db, "shop-open", "1")
             return "1"
@@ -123,8 +123,8 @@ def order(order: OrderCreateSchema, user: Annotated[User, Depends(get_current_us
     # TODO Make this into a setting
     # Automatically end ordering when we reach 11 cups (maximum capacity)
     # Find all orders created today
-    today = datetime.datetime.today()
-    orders = crud.get_orders_by_date(db, datetime.datetime(today.year, today.month, today.day))
+    today = datetime.datetime.now(tz=TIME_ZONE)
+    orders = crud.get_orders_by_date(db, datetime.datetime(today.year, today.month, today.day, 0, 0, 0, tzinfo=TIME_ZONE))
     total_cups = 0
     for o in orders:
         for i in o.items:

@@ -14,7 +14,7 @@ from starlette.responses import Response
 from data.models import User, Order, OrderType, OrderStatus
 from data.schemas import OrderSchema, OrderStatusUpdateSchema, StatsAggregateSchema
 from utils import crud
-from utils.dependencies import get_current_user, get_db
+from utils.dependencies import get_current_user, get_db, TIME_ZONE
 
 router = APIRouter()
 
@@ -58,7 +58,7 @@ def get_statistics(by: str, limit: int, db: Session) -> StatsAggregateSchema:
         return date - timedelta(days=date.weekday())
 
     def get_start_of_month(date):
-        return datetime(date.year, date.month, 1)
+        return datetime(date.year, date.month, 1, 0, 0, 0, tzinfo=TIME_ZONE)
 
     if by == "week":
         get_start_date = get_start_of_week
@@ -67,7 +67,7 @@ def get_statistics(by: str, limit: int, db: Session) -> StatsAggregateSchema:
     else:  # Default to by day
         get_start_date = lambda x: x
 
-    orders = db.query(Order).filter(Order.createdTime >= (datetime.now() - timedelta(days=limit))).order_by(
+    orders = db.query(Order).filter(Order.createdTime >= (datetime.now(tz=TIME_ZONE) - timedelta(days=limit))).order_by(
         Order.createdTime.desc()).all()
     revenue = {}
     orders_count = {}
@@ -105,8 +105,8 @@ def get_statistics(by: str, limit: int, db: Session) -> StatsAggregateSchema:
 
     today = date.today()
 
-    start_of_day = datetime.combine(date.today(), datetime.min.time())
-    end_of_day = datetime.combine(date.today(), datetime.max.time())
+    start_of_day = datetime.combine(date.today(), datetime.min.time(), tzinfo=TIME_ZONE)
+    end_of_day = datetime.combine(date.today(), datetime.max.time(), tzinfo=TIME_ZONE)
     start_of_week = get_start_of_week(today)
     end_of_week = start_of_week + timedelta(days=6)
 
@@ -167,7 +167,7 @@ def statistics_export(token: str, db: Session = Depends(get_db)):
 
 
 def export_orders(limit: int, db: Session):
-    orders = db.query(Order).filter(Order.createdTime >= (datetime.now() - timedelta(days=limit))).order_by(
+    orders = db.query(Order).filter(Order.createdTime >= (datetime.now(tz=TIME_ZONE) - timedelta(days=limit))).order_by(
         Order.createdTime.desc()).all()
 
     output = BytesIO()

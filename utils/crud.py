@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from data.models import *
 from data.schemas import OrderedItemCreateSchema, OrderCreateSchema
-
+from utils.dependencies import TIME_ZONE
 
 getcontext().prec = 5
 
@@ -141,7 +141,7 @@ def get_available_orders(session: Session):
 def create_order(session: Session, schema: OrderCreateSchema, user: User):
     order = Order(
         status=OrderStatus.notStarted,
-        createdTime=datetime.datetime.now(),
+        createdTime=datetime.datetime.now(tz=TIME_ZONE),
         type=schema.type,
         deliveryRoom=schema.deliveryRoom,
         userId=None if schema.onSiteOrder else user.id
@@ -159,7 +159,7 @@ def create_order(session: Session, schema: OrderCreateSchema, user: User):
     order.totalPrice = total_price
 
     latest = session.query(Order).order_by(Order.createdTime.desc()).first()
-    if latest is None or datetime.datetime.today().day != latest.createdTime.day:
+    if latest is None or datetime.datetime.now(tz=TIME_ZONE).day != latest.createdTime.day:
         order.number = "001"
     else:
         order.number = str(int(latest.number) + 1).zfill(3)
