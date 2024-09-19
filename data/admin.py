@@ -6,7 +6,7 @@ from sqladmin import Admin, ModelView
 from sqladmin.authentication import AuthenticationBackend
 from starlette.requests import Request
 
-from data.models import Category, Tag, OptionItem, OptionType, ItemType, User, Ad, Order
+from data.models import Category, Tag, OptionItem, OptionType, ItemType, User, Ad, Order, SettingItem
 
 
 class AdminAuth(AuthenticationBackend):
@@ -70,7 +70,7 @@ class OptionTypeAdmin(ModelView, model=OptionType):
 
 
 class ItemTypeAdmin(ModelView, model=ItemType):
-    column_list = [ItemType.category, ItemType.name, ItemType.image, ItemType.tags, ItemType.description, ItemType.shortDescription, ItemType.basePrice, ItemType.salePercent, ItemType.options]
+    column_list = [ItemType.category, ItemType.name, ItemType.image, ItemType.tags, ItemType.description, ItemType.shortDescription, ItemType.basePrice, ItemType.salePercent, ItemType.options, ItemType.soldOut]
     column_searchable_list = [ItemType.name]
     column_labels = {
         ItemType.category: 'Category',
@@ -81,7 +81,8 @@ class ItemTypeAdmin(ModelView, model=ItemType):
         ItemType.shortDescription: 'Short Description',
         ItemType.basePrice: 'Base Price',
         ItemType.salePercent: 'Sale Percent (0 to 1)',
-        ItemType.options: 'Applicable Option Types'
+        ItemType.options: 'Applicable Option Types',
+        ItemType.soldOut: 'Sold Out'
     }
 
 
@@ -132,6 +133,15 @@ class OrderAdmin(ModelView, model=Order):
     can_export = False
 
 
+class SettingsAdmin(ModelView, model=SettingItem):
+    column_list = [SettingItem.key, SettingItem.value]
+    column_searchable_list = [SettingItem.key]
+    column_labels = {
+        SettingItem.key: 'Key',
+        SettingItem.value: 'Value'
+    }
+
+
 def create_admin(app, engine):
     admin = Admin(app, engine,
                   authentication_backend=AdminAuth(secret_key='what-you-love-is-your-life'),
@@ -144,4 +154,5 @@ def create_admin(app, engine):
     admin.add_view(UserAdmin)
     admin.add_view(AdAdmin)
     admin.add_view(OrderAdmin)
+    admin.add_view(SettingsAdmin)
     return admin
