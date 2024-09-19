@@ -123,8 +123,8 @@ def order_quota(db: Session = Depends(get_db)):
             on_site += 1
 
     return OrderQuotaSchema(
-        onSiteToday=online,
-        onlineToday=on_site
+        onSiteToday=on_site,
+        onlineToday=online
     )
 
 
