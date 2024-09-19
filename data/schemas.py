@@ -139,6 +139,11 @@ class OrderEstimateSchema(BaseModel):
     status: str | None  # notStarted, inProgress, ready, or pickedUp
 
 
+class OrderQuotaSchema(BaseModel):
+    onSiteToday: int
+    onlineToday: int
+
+
 class SettingItemSchema(BaseModel):
     key: str
     value: str

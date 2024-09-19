@@ -8,7 +8,8 @@ from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy.orm import Session
 
 from data.models import OrderStatus, Order, User
-from data.schemas import ItemTypeSchema, CategorySchema, OrderSchema, OrderEstimateSchema, OrderCreateSchema, AdSchema
+from data.schemas import ItemTypeSchema, CategorySchema, OrderSchema, OrderEstimateSchema, OrderCreateSchema, AdSchema, \
+    OrderQuotaSchema
 from utils import crud
 from utils.dependencies import get_db, get_current_user, TIME_ZONE
 
@@ -110,6 +111,23 @@ def on_site_eligibility(name: str, db: Session = Depends(get_db)):
     return True
 
 
+@router.get("/order/quota", response_model=OrderQuotaSchema)
+def order_quota(db: Session = Depends(get_db)):
+    today = datetime.datetime.now(TIME_ZONE)
+    online = 0
+    on_site = 0
+    for o in crud.get_orders_by_date(db, datetime.datetime(today.year, today.month, today.day, 0, 0, 0, tzinfo=TIME_ZONE)):
+        if o.onSiteName is None:
+            online += 1
+        else:
+            on_site += 1
+
+    return OrderQuotaSchema(
+        onSiteToday=online,
+        onlineToday=on_site
+    )
+
+
 @router.post("/order", response_model=OrderSchema)
 def order(order: OrderCreateSchema, user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
     if user.blocked:
@@ -123,8 +141,15 @@ def order(order: OrderCreateSchema, user: Annotated[User, Depends(get_current_us
         for o in crud.get_orders_by_user(db, user.id):
             if o.status != OrderStatus.pickedUp:
                 raise HTTPException(status_code=403, detail="User has an active order")
-    result = crud.create_order(db, order, user)
+    today_quota = order_quota(db)
+    online_quota = crud.get_settings(db, "online-quota")
+    on_site_quota = crud.get_settings(db, "on-site-quota")
+    if order.onSiteOrder and on_site_quota is not None and today_quota.onSiteToday >= int(on_site_quota.value):
+        raise HTTPException(status_code=403, detail="On-site quota exceeded")
+    if not order.onSiteOrder and online_quota is not None and today_quota.onlineToday >= int(online_quota.value):
+        raise HTTPException(status_code=403, detail="Online quota exceeded")
 
+    result = crud.create_order(db, order, user)
     return result
 
 
