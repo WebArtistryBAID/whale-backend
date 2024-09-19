@@ -118,9 +118,11 @@ def order_quota(db: Session = Depends(get_db)):
     on_site = 0
     for o in crud.get_orders_by_date(db, datetime.datetime(today.year, today.month, today.day, 0, 0, 0, tzinfo=TIME_ZONE)):
         if o.onSiteName is None:
-            online += 1
+            for i in o.items:
+                online += i.amount
         else:
-            on_site += 1
+            for i in o.items:
+                on_site += i.amount
 
     return OrderQuotaSchema(
         onSiteToday=on_site,
