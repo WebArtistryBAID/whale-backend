@@ -151,9 +151,16 @@ def order(order: OrderCreateSchema, user: Annotated[User, Depends(get_current_us
     if not order.onSiteOrder and online_quota is not None and today_quota.onlineToday >= int(online_quota.value):
         raise HTTPException(status_code=403, detail="Online quota exceeded")
 
+    total = 0
     for item in order.items:
+        total += item.amount
         if crud.get_item_type(db, item.itemType).soldOut:
             raise HTTPException(status_code=403, detail="Item sold out")
+
+    total_quota = crud.get_settings(db, "order-quota")
+    total_quota = int(total_quota.value) if total_quota is not None else 999
+    if total > total_quota:
+        raise HTTPException(status_code=403, detail="Order exceeds quota")
 
     result = crud.create_order(db, order, user)
     return result
