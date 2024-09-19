@@ -26,17 +26,28 @@ To run in development:
 * Run `alembic upgrade head` to apply database migrations. You only need to do this when new migrations are released.
 * Run `python -m uvicorn main:app --reload`.
 
+## Settings
+
+Settings are stored in the database as a key-value pair.
+
+| Key                       | Description                                           |
+|---------------------------|-------------------------------------------------------|
+| `shop-open`               | `1` for ordering being open, and `0` for not.         |
+
+## Permissions
+
+Some users have specific permissions that allow them to access more features. These include:
+
+| Permission     | Description             |
+|----------------|-------------------------|
+| `admin.cms`    | Allows entering CMS.    |
+| `admin.manage` | Allows managing orders. |
+
 ## Integrated Services
 
 Project Whale is integrated with certain third-party service providers:
 
 * SEIUE, for user authentication
-
-## Permissions
-
-Some users have specific permissions that allow them to access more features. These include:
-* `admin.cms`: Allow entering CMS.
-* `admin.manage`: Allows managing orders.
 
 ## Contribution
 

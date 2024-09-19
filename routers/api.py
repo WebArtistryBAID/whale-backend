@@ -1,4 +1,5 @@
 import datetime
+import time
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -39,14 +40,6 @@ def get_category(id: int, db: Session = Depends(get_db)):
 @router.get("/settings", response_model=str)
 def get_setting(key: str, db: Session = Depends(get_db)):
     setting = crud.get_settings(db, key)
-
-    # Automatically enable ordering when we are past 10 a.m.
-    # TODO I think putting this here is really bad. Why are we mixing all the "settings"?
-    if key == "shop-open":
-        now = datetime.datetime.now(tz=TIME_ZONE)
-        if 10 <= now.hour <= 12:
-            crud.update_settings(db, "shop-open", "1")
-            return "1"
     return "0" if setting is None else setting.value
 
 
@@ -132,18 +125,6 @@ def order(order: OrderCreateSchema, user: Annotated[User, Depends(get_current_us
                 raise HTTPException(status_code=403, detail="User has an active order")
     result = crud.create_order(db, order, user)
 
-    # TODO Make this into a setting
-    # Automatically end ordering when we reach 11 cups (maximum capacity)
-    # Find all orders created today
-    today = datetime.datetime.now(tz=TIME_ZONE)
-    orders = crud.get_orders_by_date(db, datetime.datetime(today.year, today.month, today.day, 0, 0, 0, tzinfo=TIME_ZONE))
-    total_cups = 0
-    for o in orders:
-        for i in o.items:
-            total_cups += i.amount
-
-    if total_cups >= 11:
-        crud.update_settings(db, "shop-open", "0")
     return result
 
 

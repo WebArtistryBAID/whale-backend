@@ -1,5 +1,6 @@
 import os
 import urllib.parse
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi_pagination import add_pagination
@@ -9,6 +10,7 @@ from starlette.staticfiles import StaticFiles
 from data.admin import create_admin
 from data.database import engine
 from routers import user, api, manage
+from utils.scheduling import start_scheduler
 
 app = FastAPI(root_path=urllib.parse.urlparse(os.environ['API_HOST']).path)
 
@@ -23,6 +25,17 @@ if os.environ.get("DEVELOPMENT") == "true":
 
 if not os.path.exists("uploads"):
     os.makedirs("uploads")
+
+scheduler = start_scheduler()
+
+
+@asynccontextmanager
+async def lifespan(app):
+    try:
+        yield
+    finally:
+        scheduler.shutdown()
+
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.include_router(api.router)
