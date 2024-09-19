@@ -77,6 +77,7 @@ class ItemTypeSchema(BaseModel):
     options: List[OptionTypeSchema]
     basePrice: Decimal
     salePercent: float
+    soldOut: bool
 
     class Config:
         from_attributes = True

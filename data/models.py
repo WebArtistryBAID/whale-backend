@@ -106,6 +106,7 @@ class ItemType(Base):
     options = relationship('OptionType', secondary=itemOptionAssociation)
     basePrice = Column(DECIMAL(5, 2))
     salePercent = Column(DECIMAL(5, 2))
+    soldOut = Column(Boolean, default=False, nullable=False)
 
     def __str__(self):
         return self.name
