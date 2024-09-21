@@ -122,7 +122,8 @@ class OrderSchema(BaseModel):
 
 class OrderStatusUpdateSchema(BaseModel):
     id: int
-    status: str  # waiting, done
+    status: str | None  # waiting, done
+    paid: bool | None
 
 
 class OrderCreateSchema(BaseModel):

@@ -39,7 +39,7 @@ def update_order_status(data: OrderStatusUpdateSchema, user: Annotated[User, Dep
     order = crud.ensure_not_none(crud.get_order(db, data.id))
     if "admin.manage" not in user.permissions:
         raise HTTPException(status_code=403, detail="Permission denied")
-    crud.update_order_status(db, order, data.status)
+    crud.update_order_status(db, order, data.status, data.paid)
     return order
 
 

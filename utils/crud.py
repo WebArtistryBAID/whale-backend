@@ -180,8 +180,11 @@ def create_order(session: Session, schema: OrderCreateSchema, user: User):
     return order
 
 
-def update_order_status(session: Session, order: Order, new_status: str):
-    order.status = new_status
+def update_order_status(session: Session, order: Order, new_status: str | None, new_paid: bool | None):
+    if new_status is not None:
+        order.status = new_status
+    if new_paid is not None:
+        order.paid = new_paid
     session.commit()
 
 
