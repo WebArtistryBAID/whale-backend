@@ -7,6 +7,7 @@ from typing import Annotated
 
 import xlsxwriter
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi_pagination import paginate
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 from starlette.responses import Response
@@ -26,11 +27,18 @@ def update_settings(key: str, value: str, user: Annotated[User, Depends(get_curr
     return crud.update_settings(db, key, value)
 
 
-@router.get("/orders/available", response_model=list[OrderSchema])
-def available_orders(user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
+@router.get("/orders/today", response_model=list[OrderSchema])
+def today_orders(user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
     if "admin.manage" not in user.permissions:
         raise HTTPException(status_code=403, detail="Permission denied")
-    return crud.get_available_orders(db)
+    return crud.get_orders_today(db)
+
+
+@router.get("/orders")
+def all_orders(user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
+    if "admin.manage" not in user.permissions:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    return paginate(crud.get_orders(db))
 
 
 @router.patch("/order", response_model=OrderSchema)

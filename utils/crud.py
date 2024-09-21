@@ -127,7 +127,7 @@ def get_orders_query_by_user(user_id: str):
 
 
 def get_orders_by_date(session: Session, date: datetime.datetime):
-    return session.query(Order).filter(Order.createdTime >= date).filter(Order.createdTime < date + datetime.timedelta(days=1)).all()
+    return session.query(Order).filter(Order.createdTime >= date).filter(Order.createdTime < date + datetime.timedelta(days=1)).order_by(Order.createdTime.desc()).all()
 
 
 def get_orders_by_user(session: Session, user_id: str):
@@ -138,8 +138,14 @@ def get_orders_by_on_site_name(session: Session, on_site_name: str):
     return session.query(Order).filter(Order.onSiteName == on_site_name).order_by(Order.createdTime.desc()).all()
 
 
-def get_available_orders(session: Session):
-    return session.query(Order).filter(Order.status == OrderStatus.waiting or Order.paid == False).order_by(Order.createdTime.desc()).all()
+def get_orders_today(session: Session):
+    now = datetime.datetime.now(tz=TIME_ZONE)
+    return get_orders_by_date(session, datetime.datetime(now.year, now.month, now.day, 0, 0, 0, tzinfo=TIME_ZONE))
+
+
+def get_orders(session: Session):
+    # Note that this does not return everything queried - this is an uncompleted query to be paginated
+    return session.query(Order).order_by(Order.createdTime.desc())
 
 
 def create_order(session: Session, schema: OrderCreateSchema, user: User):
