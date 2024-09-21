@@ -143,9 +143,9 @@ def get_orders_today(session: Session):
     return get_orders_by_date(session, datetime.datetime(now.year, now.month, now.day, 0, 0, 0, tzinfo=TIME_ZONE))
 
 
-def get_orders(session: Session):
+def get_orders():
     # Note that this does not return everything queried - this is an uncompleted query to be paginated
-    return session.query(Order).order_by(Order.createdTime.desc())
+    return select(Order).order_by(Order.createdTime.desc())
 
 
 def create_order(session: Session, schema: OrderCreateSchema, user: User):
