@@ -139,7 +139,7 @@ def get_orders_by_on_site_name(session: Session, on_site_name: str):
 
 
 def get_available_orders(session: Session):
-    return session.query(Order).filter(Order.status == OrderStatus.waiting).order_by(Order.createdTime.desc()).all()
+    return session.query(Order).filter(Order.status == OrderStatus.waiting or Order.paid == False).order_by(Order.createdTime.desc()).all()
 
 
 def create_order(session: Session, schema: OrderCreateSchema, user: User):
