@@ -139,7 +139,7 @@ def get_orders_by_on_site_name(session: Session, on_site_name: str):
 
 
 def get_available_orders(session: Session):
-    return session.query(Order).filter(Order.status != OrderStatus.pickedUp).order_by(Order.createdTime.desc()).all()
+    return session.query(Order).filter(Order.status == OrderStatus.waiting).order_by(Order.createdTime.desc()).all()
 
 
 def create_order(session: Session, schema: OrderCreateSchema, user: User):
@@ -151,7 +151,7 @@ def create_order(session: Session, schema: OrderCreateSchema, user: User):
             user = try_match[0]
 
     order = Order(
-        status=OrderStatus.notStarted,
+        status=OrderStatus.waiting,
         createdTime=datetime.datetime.now(tz=TIME_ZONE),
         type=schema.type,
         deliveryRoom=schema.deliveryRoom,

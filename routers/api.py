@@ -60,7 +60,7 @@ def estimate(id: int | None = None, db: Session = Depends(get_db)):
     order = None
     if id is not None:
         order = crud.ensure_not_none(crud.get_order(db, id))
-        if order.status == OrderStatus.ready or order.status == OrderStatus.pickedUp:
+        if order.status == OrderStatus.done:
             return OrderEstimateSchema(
                 time=0,
                 orders=0,
@@ -72,11 +72,11 @@ def estimate(id: int | None = None, db: Session = Depends(get_db)):
             amount += item.amount
         matching_orders = (db.query(Order)
                            .filter(Order.createdTime < order.createdTime)
-                           .filter(Order.status.in_([OrderStatus.notStarted, OrderStatus.inProgress]))
+                           .filter(Order.status == OrderStatus.waiting)
                            .all())
     else:
         matching_orders = (db.query(Order)
-                           .filter(Order.status.in_([OrderStatus.notStarted, OrderStatus.inProgress]))
+                           .filter(Order.status == OrderStatus.waiting)
                            .all())
 
     for o in matching_orders:
@@ -96,17 +96,17 @@ def cancel_order(id: int, user: Annotated[User, Depends(get_current_user)], db: 
     if user.blocked:
         raise HTTPException(status_code=403, detail="User is blocked")
     order = crud.ensure_not_none(crud.get_order(db, id))
-    if (order.status == OrderStatus.notStarted and order.userId == user.id) or "admin.manage" in user.permissions:
+    if "admin.manage" in user.permissions:
         crud.delete_order(db, order)
         return True
-    raise HTTPException(status_code=401, detail="Order already started")
+    raise HTTPException(status_code=403, detail="Permissions denied")
 
 
 @router.get("/order/on-site-eligibility", response_model=bool)
 def on_site_eligibility(name: str, db: Session = Depends(get_db)):
     orders = crud.get_orders_by_on_site_name(db, name)
     for o in orders:
-        if o.status != OrderStatus.pickedUp:
+        if o.status != OrderStatus.done or not o.paid:
             return False
     return True
 
@@ -141,7 +141,7 @@ def order(order: OrderCreateSchema, user: Annotated[User, Depends(get_current_us
             raise HTTPException(status_code=403, detail="User has an active order")
     else:
         for o in crud.get_orders_by_user(db, user.id):
-            if o.status != OrderStatus.pickedUp:
+            if o.status != OrderStatus.done or not o.paid:
                 raise HTTPException(status_code=403, detail="User has an active order")
     today_quota = order_quota(db)
     online_quota = crud.get_settings(db, "online-quota")

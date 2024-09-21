@@ -107,13 +107,14 @@ class OrderSchema(BaseModel):
     id: int
     totalPrice: Decimal
     number: str
-    status: str  # notStarted, inProgress, ready, or pickedUp
+    status: str  # waiting, done
     createdTime: datetime
     type: str  # pickUp, delivery
     deliveryRoom: str | None
     user: UserSchema | None
     items: List[OrderedItemSchema]
     onSiteName: str | None
+    paid: bool
 
     class Config:
         from_attributes = True
@@ -121,7 +122,7 @@ class OrderSchema(BaseModel):
 
 class OrderStatusUpdateSchema(BaseModel):
     id: int
-    status: str  # notStarted, inProgress, ready or pickedUp
+    status: str  # waiting, done
 
 
 class OrderCreateSchema(BaseModel):
@@ -137,7 +138,7 @@ class OrderEstimateSchema(BaseModel):
     orders: int
     type: str | None  # pickUp, delivery
     number: str | None
-    status: str | None  # notStarted, inProgress, ready, or pickedUp
+    status: str | None  # waiting, done
 
 
 class OrderQuotaSchema(BaseModel):

@@ -78,10 +78,12 @@ def get_statistics(by: str, limit: int, db: Session) -> StatsAggregateSchema:
             day = order.createdTime.strftime("%Y-%m-%d %H:%M:%S")
         else:
             day = get_start_date(order.createdTime).strftime("%Y-%m-%d")
-        if day in revenue:
-            revenue[day] += order.totalPrice
-        else:
-            revenue[day] = Decimal(order.totalPrice)
+
+        if order.paid:
+            if day in revenue:
+                revenue[day] += order.totalPrice
+            else:
+                revenue[day] = Decimal(order.totalPrice)
 
         if day in orders_count:
             orders_count[day] += 1
@@ -117,7 +119,8 @@ def get_statistics(by: str, limit: int, db: Session) -> StatsAggregateSchema:
     week_revenue = 0
 
     for order in db.query(Order).filter(Order.createdTime >= start_of_day, Order.createdTime <= end_of_day).all():
-        today_revenue += order.totalPrice
+        if order.paid:
+            today_revenue += order.totalPrice
         today_orders += 1
         for item in order.items:
             today_cups += item.amount
@@ -183,6 +186,7 @@ def export_orders(limit: int, db: Session):
     ws.write(0, 7, "Delivery Room")
     ws.write(0, 8, "Items")
     ws.write(0, 9, "On-Site Name")
+    ws.write(0, 10, "Paid")
 
     row = 1
     for order in orders:
@@ -192,10 +196,8 @@ def export_orders(limit: int, db: Session):
         ws.write(row, 3, order.userId if order.userId is not None else "On-Site Ordering")
         ws.write(row, 4, order.user.name if order.userId is not None else "On-Site Ordering")
         ws.write(row, 5, {
-            OrderStatus.notStarted: "Not Started",
-            OrderStatus.inProgress: "In Progress",
-            OrderStatus.ready: "Ready",
-            OrderStatus.pickedUp: "Picked Up"
+            OrderStatus.waiting: "Waiting",
+            OrderStatus.done: "Done"
         }[order.status])
         ws.write(row, 6, {
             OrderType.pickUp: "Pick Up",
@@ -210,6 +212,7 @@ def export_orders(limit: int, db: Session):
             items.append(f"{item.amount}x {item.itemType.name} ({', '.join(options)})")
         ws.write(row, 8, "\n".join(items))
         ws.write(row, 9, order.onSiteName if order.onSiteName is not None else "N/A")
+        ws.write(row, 10, "Yes" if order.paid else "No")
         row += 1
     workbook.close()
     return Response(

@@ -128,10 +128,8 @@ class OrderedItem(Base):
 
 
 class OrderStatus(enum.Enum):
-    notStarted = 'notStarted'
-    inProgress = 'inProgress'
-    ready = 'ready'
-    pickedUp = 'pickedUp'
+    waiting = 'waiting'
+    done = 'done'
 
 
 class OrderType(enum.Enum):
@@ -153,6 +151,7 @@ class Order(Base):
     userId = Column(String(9), ForeignKey('users.id', ondelete='SET NULL'))
     user = relationship('User', back_populates='orders')
     onSiteName = Column(String(255))
+    paid = Column(Boolean, default=False, nullable=False)
 
 
 class Ad(Base):

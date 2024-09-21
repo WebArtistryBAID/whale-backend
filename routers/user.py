@@ -39,6 +39,7 @@ def login_capture_token(redirect: str):
     <title>Please wait...</title>
 </head>
 <body>
+    <noscript><p>Please enable JavaScript and refresh this page.</p></noscript>
     <script>    
         if (location.hash.includes('access_token')) {
             const token = location.hash.replace('#', '')
@@ -81,17 +82,6 @@ def login_token_redirect(redirect: str, error: str | None = None, token: str | N
     return response
 
 
-@router.get("/login/test")
-def login_test(db: Session = Depends(get_db)):
-    if os.environ.get("DEVELOPMENT") != "true":
-        raise HTTPException(status_code=403)
-    if crud.get_user(db, "00000000") is None:
-        crud.create_user(db, "00000000", "Test", "Test", "0000")
-    to_encode = {"name": "Test", "id": "00000000", "exp": datetime.now(timezone.utc) + timedelta(days=30)}
-    encoded = jwt.encode(to_encode, key=os.environ["JWT_SECRET_KEY"], algorithm="HS256")
-    return RedirectResponse(os.environ["FRONTEND_HOST"] + "/login/onboarding/_?token=" + urllib.parse.quote(encoded, safe="") + "&name=Test", status_code=302)
-
-
 @router.get("/me", response_model=UserSchemaSecure)
 def me(user: Annotated[User, Depends(get_current_user)]):
     return user
@@ -100,7 +90,7 @@ def me(user: Annotated[User, Depends(get_current_user)]):
 @router.get("/me/canorder", response_model=bool)
 def me_can_order(user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
     for o in crud.get_orders_by_user(db, user.id):
-        if o.status != OrderStatus.pickedUp:
+        if o.status != OrderStatus.done or not o.paid:
             return False
     return True
 
@@ -118,7 +108,7 @@ def me_statistics(user: Annotated[User, Depends(get_current_user)], db: Session 
         total_spent += order.totalPrice
         for item in order.items:
             total_cups += item.amount
-        if order.status != OrderStatus.pickedUp:
+        if order.status != OrderStatus.done or not order.paid:
             deletable = False
     return UserStatisticsSchema(
         totalOrders=orders_amount,
@@ -131,10 +121,10 @@ def me_statistics(user: Annotated[User, Depends(get_current_user)], db: Session 
 @router.delete("/me", response_model=bool)
 def delete_me(user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
     if user.blocked:
-        raise HTTPException(status_code=403, detail='User is blocked')
+        raise HTTPException(status_code=403, detail='Cannot delete blocked user')
     orders = crud.get_orders_by_user(db, user.id)
     for order in orders:
-        if order.status != OrderStatus.pickedUp:
+        if order.status != OrderStatus.done or not order.paid:
             raise HTTPException(status_code=403, detail='Cannot delete user with active orders')
     crud.delete_user(db, user)
     return True
