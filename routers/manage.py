@@ -34,7 +34,7 @@ def today_orders(user: Annotated[User, Depends(get_current_user)], db: Session =
     return crud.get_orders_today(db)
 
 
-@router.get("/orders")
+@router.get("/orders/all")
 def all_orders(user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
     if "admin.manage" not in user.permissions:
         raise HTTPException(status_code=403, detail="Permission denied")
