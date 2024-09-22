@@ -17,7 +17,7 @@ def disable_ordering():
 
 def start_scheduler():
     scheduler = BackgroundScheduler(timezone=TIME_ZONE)
-    scheduler.add_job(enable_ordering, "cron", hour=10, minute=0)
-    scheduler.add_job(disable_ordering, "cron", hour=16, minute=0)
+    scheduler.add_job(enable_ordering, "cron", hour=10, minute=0, day_of_week="mon-fri")
+    scheduler.add_job(disable_ordering, "cron", hour=16, minute=0, day_of_week="mon-fri")
     scheduler.start()
     return scheduler
