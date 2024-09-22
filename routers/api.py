@@ -48,7 +48,7 @@ def get_order(id: int, db: Session = Depends(get_db)):
     return crud.ensure_not_none(crud.get_order(db, id))
 
 
-@router.get("/order/bynumber", response_model=OrderSchema)
+@router.get("/order/by-number", response_model=OrderSchema)
 def get_order(number: str, db: Session = Depends(get_db)):
     return crud.ensure_not_none(crud.get_order_by_number(db, number))
 

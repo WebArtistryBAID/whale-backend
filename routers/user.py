@@ -87,7 +87,7 @@ def me(user: Annotated[User, Depends(get_current_user)]):
     return user
 
 
-@router.get("/me/canorder", response_model=bool)
+@router.get("/me/can-order", response_model=bool)
 def me_can_order(user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
     for o in crud.get_orders_by_user(db, user.id):
         if o.status != OrderStatus.done or not o.paid:
