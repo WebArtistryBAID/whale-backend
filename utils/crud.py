@@ -148,13 +148,17 @@ def get_orders():
     return select(Order).order_by(Order.createdTime.desc())
 
 
+def try_match_user(session: Session, name: str):
+    result = session.query(User).filter(User.name == name).all()
+    if len(result) == 1:
+        return result[0]
+    return None
+
+
 def create_order(session: Session, schema: OrderCreateSchema, user: User):
     # Try to match a user for on-site orders
     if schema.onSiteOrder:
-        user = None
-        try_match = session.query(User).filter(User.name == schema.onSiteName).all()
-        if len(try_match) == 1:  # No ambiguity of names
-            user = try_match[0]
+        user = try_match_user(session, schema.onSiteName)
 
     order = Order(
         status=OrderStatus.waiting,

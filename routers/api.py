@@ -129,6 +129,11 @@ def order_quota(db: Session = Depends(get_db)):
     )
 
 
+@router.get("/order/can-match-user", response_model=bool)
+def can_match_user(name: str, db: Session = Depends(get_db)):
+    return crud.try_match_user(db, name) is not None
+
+
 @router.post("/order", response_model=OrderSchema)
 def order(order: OrderCreateSchema, user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
     if user.blocked:
