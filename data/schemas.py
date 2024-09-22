@@ -11,6 +11,7 @@ class UserSchema(BaseModel):
     permissions: str
     pinyin: str | None
     blocked: bool
+    points: Decimal
 
     class Config:
         from_attributes = True

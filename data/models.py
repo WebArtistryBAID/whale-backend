@@ -40,6 +40,7 @@ class User(Base):
     permissions = Column(String(1024), default="")
     blocked = Column(Boolean, default=False)
     orders = relationship('Order', back_populates='user')
+    points = Column(DECIMAL(5, 2), nullable=False)
 
     def __str__(self):
         return self.name + ' (' + self.pinyin + ')'

@@ -175,6 +175,7 @@ def create_order(session: Session, schema: OrderCreateSchema, user: User):
         item_price *= item.amount
         total_price += item_price
     order.totalPrice = total_price
+    user.points += total_price
 
     latest = session.query(Order).order_by(Order.createdTime.desc()).first()
     if latest is None or datetime.datetime.now(tz=TIME_ZONE).day != latest.createdTime.day:
