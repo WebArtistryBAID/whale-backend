@@ -30,12 +30,11 @@ To run in development:
 
 Settings are stored in the database as a key-value pair.
 
-| Key               | Description                                       |
-|-------------------|---------------------------------------------------|
-| `shop-open`       | `1` for ordering being open, and `0` for not.     |
-| `online-quota`    | The number of online orders that can be placed.   |
-| `on-site-quota`   | The number of on-site orders that can be placed.  |
-| `order-quota`     | The number of cups that can be ordered per order. |
+| Key            | Description                                       |
+|----------------|---------------------------------------------------|
+| `shop-open`    | `1` for ordering being open, and `0` for not.     |
+| `total-quota`  | The number of cups that can be ordered.           |
+| `order-quota`  | The number of cups that can be ordered per order. |
 
 ## Permissions
 
