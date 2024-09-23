@@ -159,6 +159,9 @@ def order(order: OrderCreateSchema, user: Annotated[User, Depends(get_current_us
         total += item.amount
         if crud.get_item_type(db, item.itemType).soldOut:
             raise HTTPException(status_code=403, detail="Item sold out")
+        for option in item.appliedOptions:
+            if crud.get_option_item(db, option).soldOut:
+                raise HTTPException(status_code=403, detail="Option sold out")
 
     total_quota = crud.get_settings(db, "order-quota")
     total_quota = int(total_quota.value) if total_quota is not None else 999

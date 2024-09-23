@@ -53,6 +53,7 @@ class OptionItemSchema(BaseModel):
     name: str
     isDefault: bool
     priceChange: Decimal
+    soldOut: bool
 
     class Config:
         from_attributes = True

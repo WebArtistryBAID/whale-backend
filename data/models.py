@@ -77,6 +77,7 @@ class OptionItem(Base):
     name = Column(String(20))
     isDefault = Column(Boolean, default=False, nullable=False)
     priceChange = Column(DECIMAL(5, 2))
+    soldOut = Column(Boolean, default=False, nullable=False)
 
     def __str__(self):
         return self.name
