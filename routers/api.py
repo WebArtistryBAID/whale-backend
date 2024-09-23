@@ -148,18 +148,20 @@ def order(order: OrderCreateSchema, user: Annotated[User, Depends(get_current_us
             if o.status != OrderStatus.done or not o.paid:
                 raise HTTPException(status_code=403, detail="User has an active order")
     today_quota = order_quota(db)
-    online_quota = crud.get_settings(db, "online-quota")
-    on_site_quota = crud.get_settings(db, "on-site-quota")
-    if order.onSiteOrder and on_site_quota is not None and today_quota.onSiteToday >= int(on_site_quota.value):
-        raise HTTPException(status_code=403, detail="On-site quota exceeded")
-    if not order.onSiteOrder and online_quota is not None and today_quota.onlineToday >= int(online_quota.value):
-        raise HTTPException(status_code=403, detail="Online quota exceeded")
+    quota = crud.get_settings(db, "total-quota")
+    quota = int(quota.value) if quota is not None else 999
+    if today_quota.onSiteToday + today_quota.onlineToday >= quota:
+        # CAVEAT: We allow for a single order to exceed the quota
+        raise HTTPException(status_code=403, detail="Order exceeds quota")
 
     total = 0
     for item in order.items:
         total += item.amount
         if crud.get_item_type(db, item.itemType).soldOut:
             raise HTTPException(status_code=403, detail="Item sold out")
+        for option in item.appliedOptions:
+            if crud.get_option_item(db, option).soldOut:
+                raise HTTPException(status_code=403, detail="Option sold out")
 
     total_quota = crud.get_settings(db, "order-quota")
     total_quota = int(total_quota.value) if total_quota is not None else 999

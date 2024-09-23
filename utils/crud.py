@@ -195,10 +195,11 @@ def update_order_status(session: Session, order: Order, new_status: str | None, 
     if new_status is not None:
         order.status = new_status
     if new_paid is not None:
-        if new_paid and not order.paid:
-            order.user.points += order.totalPrice
-        if not new_paid and order.paid:
-            order.user.points -= order.totalPrice
+        if order.user is not None:
+            if new_paid and not order.paid:
+                order.user.points += order.totalPrice
+            if not new_paid and order.paid:
+                order.user.points -= order.totalPrice
         order.paid = new_paid
     session.commit()
 
