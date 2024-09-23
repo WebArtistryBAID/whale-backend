@@ -22,7 +22,8 @@ def create_user(session: Session, user_id: str, user_name: str, pinyin: str | No
         id=user_id,
         name=user_name,
         pinyin=pinyin,
-        phone=phone
+        phone=phone,
+        points=0
     )
     session.add(user)
     session.commit()
