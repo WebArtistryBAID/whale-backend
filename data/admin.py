@@ -51,13 +51,14 @@ class TagAdmin(ModelView, model=Tag):
 
 
 class OptionItemAdmin(ModelView, model=OptionItem):
-    column_list = [OptionItem.name, OptionItem.priceChange, OptionItem.type, OptionItem.isDefault]
+    column_list = [OptionItem.name, OptionItem.priceChange, OptionItem.type, OptionItem.isDefault, OptionItem.soldOut]
     column_searchable_list = [OptionItem.name]
     column_labels = {
         OptionItem.name: 'Name',
         OptionItem.priceChange: 'Price Change',
         OptionItem.type: 'Type',
-        OptionItem.isDefault: 'Select By Default'
+        OptionItem.isDefault: 'Select By Default',
+        OptionItem.soldOut: 'Sold Out'
     }
 
 
