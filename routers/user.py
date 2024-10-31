@@ -100,6 +100,7 @@ def me_can_order(user: Annotated[User, Depends(get_current_user)], db: Session =
             )
     return MeCanOrderResultSchema(
         result=True,
+        orderId=None,
         orderNumber=None,
         orderTotalPrice=None,
         orderDate=None
