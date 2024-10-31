@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from starlette.responses import HTMLResponse, RedirectResponse
 
 from data.models import User, OrderStatus
-from data.schemas import UserSchemaSecure, UserStatisticsSchema
+from data.schemas import UserSchemaSecure, UserStatisticsSchema, MeCanOrderResultSchema
 from utils import crud
 from utils.dependencies import get_db, get_current_user
 
@@ -87,12 +87,23 @@ def me(user: Annotated[User, Depends(get_current_user)]):
     return user
 
 
-@router.get("/me/can-order", response_model=bool)
+@router.get("/me/can-order", response_model=MeCanOrderResultSchema)
 def me_can_order(user: Annotated[User, Depends(get_current_user)], db: Session = Depends(get_db)):
     for o in crud.get_orders_by_user(db, user.id):
         if o.status != OrderStatus.done or not o.paid:
-            return False
-    return True
+            return MeCanOrderResultSchema(
+                result=False,
+                orderId=o.id,
+                orderNumber=o.number,
+                orderTotalPrice=o.totalPrice,
+                orderDate=o.createdTime
+            )
+    return MeCanOrderResultSchema(
+        result=True,
+        orderNumber=None,
+        orderTotalPrice=None,
+        orderDate=None
+    )
 
 
 @router.get("/me/statistics", response_model=UserStatisticsSchema)

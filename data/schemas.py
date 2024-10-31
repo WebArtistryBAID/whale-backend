@@ -154,6 +154,14 @@ class SettingItemSchema(BaseModel):
     value: str
 
 
+class MeCanOrderResultSchema(BaseModel):
+    result: bool
+    orderId: int | None
+    orderNumber: str | None
+    orderDate: datetime | None
+    orderTotalPrice: Decimal | None
+
+
 class AdSchema(BaseModel):
     id: int
     name: str
