@@ -9,19 +9,22 @@ To run in production, follow the tutorial under [WebArtistryBAID](https://github
 To run in development:
 
 * Ensure that you have at least Python 3.12 available.
+* Run [WebArtistryBAID](https://github.com/WebArtistryBAID)/[**baid-onelogin**](https://github.com/WebArtistryBAID/baid-onelogin) and create an OAuth2 app. Set `http://your-host/login/authorize` as a redirect URI. Allow the scopes `basic`, `phone`, and `sms`.
 * Clone the repository.
 * Run `pip install -r requirements.txt`.
 * Export all the following environment variables:
 
-| Name              | Description                                                                             |
-|-------------------|-----------------------------------------------------------------------------------------|
-| `DATABASE_URL`    | The database URL to use. Typically `sqlite:///database.db`.                             |
-| `API_HOST`        | The full URL on which this API is running on, no trailing slash.                        |
-| `FRONTEND_HOST`   | The full URL on which the frontend is hosted, no trailing slash.                        |
-| `JWT_SECRET_KEY`  | The JWT secret key to use. You can generate one with `openssl rand -hex 32`.            |
-| `SEIUE_CLIENT_ID` | The client ID received from SEIUE for authentication.                                   |
-| `DEVELOPMENT`     | Set to `true` to bypass CORS protections and enable certain development-only features.  |
-| `TIME_ZONE`       | `Asia/Shanghai` by default.                                                             |
+| Name                     | Description                                                                            |
+|--------------------------|----------------------------------------------------------------------------------------|
+| `DATABASE_URL`           | The database URL to use. Typically `sqlite:///database.db`.                            |
+| `API_HOST`               | The full URL on which this API is running on, no trailing slash.                       |
+| `FRONTEND_HOST`          | The full URL on which the frontend is hosted, no trailing slash.                       |
+| `ONELOGIN_HOST`          | The full URL on which OneLogin is hosted, no trailing slash.                           |
+| `JWT_SECRET_KEY`         | The JWT secret key to use. You can generate one with `openssl rand -hex 32`.           |
+| `ONELOGIN_CLIENT_ID`     | The client ID for the registered OneLogin app.                                         |
+| `ONELOGIN_CLIENT_SECRET` | The client secret for the registered OneLogin app.                                     |
+| `DEVELOPMENT`            | Set to `true` to bypass CORS protections and enable certain development-only features. |
+| `TIME_ZONE`              | `Asia/Shanghai` by default.                                                            |
 
 * Run `alembic upgrade head` to apply database migrations. You only need to do this when new migrations are released.
 * Run `python -m uvicorn main:app --reload`.

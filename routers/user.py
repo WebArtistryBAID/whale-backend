@@ -1,3 +1,4 @@
+import base64
 import os
 import urllib.parse
 from datetime import datetime, timezone, timedelta
@@ -8,7 +9,7 @@ import requests
 from fastapi import APIRouter, Depends, HTTPException
 from jose import jwt
 from sqlalchemy.orm import Session
-from starlette.responses import HTMLResponse, RedirectResponse
+from starlette.responses import RedirectResponse
 
 from data.models import User, OrderStatus
 from data.schemas import UserSchemaSecure, UserStatisticsSchema, MeCanOrderResultSchema
@@ -18,66 +19,40 @@ from utils.dependencies import get_db, get_current_user
 router = APIRouter()
 
 
-@router.get("/login")
-def login_redirect(redirect: str):
-    # We are still within the SPA context here, so the redirect is performed by the SPA
-    return {
-        "target": "https://passport.seiue.com/authorize?response_type=token&client_id=" + os.environ["SEIUE_CLIENT_ID"] +
-                  "&school_id=452&scope=reflection.read_basic" +
-                  "&redirect_uri=" + urllib.parse.quote(os.environ["API_HOST"] + "/login/capture?redirect=" + urllib.parse.quote(redirect, safe=""), safe="")
-    }
+@router.get("/login/authorize")
+def login_authorize(code: str | None = None, error: str | None = None, db: Session = Depends(get_db)):
+    if error == "access_denied":
+        return RedirectResponse(os.environ["FRONTEND_HOST"], status_code=302)
+    if code is None:
+        return RedirectResponse(os.environ["FRONTEND_HOST"] + "/login/onboarding?error=error", status_code=302)
 
+    # Exchange data
+    r = requests.post(os.environ["ONELOGIN_HOST"] + "/oauth2/token", {
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": os.environ["API_HOST"] + "/login/authorize"
+    }, headers={
+        "Authorization": "Basic " + base64.b64encode((os.environ["ONELOGIN_CLIENT_ID"] + ":" + os.environ["ONELOGIN_CLIENT_SECRET"]).encode("utf-8")).decode("utf-8")
+    })
 
-@router.get("/login/capture", response_class=HTMLResponse)
-def login_capture_token(redirect: str):
-    # We have been redirected back from SEIUE and is within a separate context from the SPA
-    return """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Please wait...</title>
-</head>
-<body>
-    <noscript><p>Please enable JavaScript and refresh this page.</p></noscript>
-    <script>    
-        if (location.hash.includes('access_token')) {
-            const token = location.hash.replace('#', '')
-            const match = token.match(/access_token=([^&]*)/)
-            if (match && match[1]) {
-                window.location.replace(`""" + os.environ["API_HOST"] + """/login/exchange?token=${encodeURIComponent(match[1])}&redirect=${encodeURIComponent('""" + redirect + """')}`)
-            }
-        } else {
-            window.location.replace('""" + os.environ["API_HOST"] + """/login/exchange?error=error')
-        }
-    </script>
-</body>
-</html>
-"""
-
-
-@router.get("/login/exchange")
-def login_token_redirect(redirect: str, error: str | None = None, token: str | None = None, db: Session = Depends(get_db)):
-    if error is not None or token is None:
-        return RedirectResponse(redirect + "?error=error", status_code=302)
-    # Still in a separate context, but now we redirect back to the SPA with our custom token
-    r = requests.get("https://open.seiue.com/api/v3/oauth/me",
-                     headers={
-                         "Authorization": f"Bearer {token}",
-                         "X-School-Id": "452"
-                     })
-    if r.status_code != 200:
-        return RedirectResponse(redirect + "?error=error", status_code=302)
     data = r.json()
-    if crud.get_user(db, data["usin"]) is None:
-        user = crud.create_user(db, data["usin"], data["name"], data.get("pinyin"), data.get("phone"))
+    if "error" in data:
+        return RedirectResponse(os.environ["FRONTEND_HOST"] + "/login/onboarding?error=error", status_code=302)
+    access_token = data["access_token"]
+
+    r = requests.get(os.environ["ONELOGIN_HOST"] + "/api/v1/me",
+                     headers={"Authorization": "Bearer " + access_token})
+    data = r.json()
+
+    if crud.get_user(db, data["schoolId"]) is None:
+        user = crud.create_user(db, data["schoolId"], data["name"], data["pinyin"], data.get("phone"))
     else:
-        user = crud.update_user(db, crud.get_user(db, data["usin"]), data["name"], data.get("pinyin"), data.get("phone"))
-    to_encode = {"name": data["name"], "id": data["usin"], "permissions": user.permissions,
+        user = crud.update_user(db, crud.get_user(db, data["schoolId"]), data["name"], data.get("pinyin"), data.get("phone"))
+    to_encode = {"name": data["name"], "id": data["schoolId"], "permissions": user.permissions,
                  "exp": datetime.now(timezone.utc) + timedelta(days=30)}
     encoded = jwt.encode(to_encode, key=os.environ["JWT_SECRET_KEY"], algorithm="HS256")
 
-    response = RedirectResponse(redirect + "?token=" + urllib.parse.quote(encoded, safe="") + "&name=" + urllib.parse.quote(data["name"], safe=""), status_code=302)
+    response = RedirectResponse(os.environ["FRONTEND_HOST"] + "/login/onboarding?token=" + urllib.parse.quote(encoded, safe="") + "&name=" + urllib.parse.quote(data["name"], safe=""), status_code=302)
     response.set_cookie("token", encoded, httponly=True, expires=datetime.now(timezone.utc) + timedelta(days=30))
     return response
 
