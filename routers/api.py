@@ -105,7 +105,7 @@ def cancel_order(id: int, user: Annotated[User, Depends(get_current_user)], db: 
 def on_site_eligibility(name: str, db: Session = Depends(get_db)):
     orders = crud.get_orders_by_on_site_name(db, name)
     for o in orders:
-        if o.status != OrderStatus.done or not o.paid:
+        if not o.paid:
             return False
     return True
 
@@ -145,7 +145,7 @@ def order(order: OrderCreateSchema, user: Annotated[User, Depends(get_current_us
             raise HTTPException(status_code=403, detail="User has an active order")
     else:
         for o in crud.get_orders_by_user(db, user.id):
-            if o.status != OrderStatus.done or not o.paid:
+            if not o.paid:
                 raise HTTPException(status_code=403, detail="User has an active order")
     today_quota = order_quota(db)
     quota = crud.get_settings(db, "total-quota")

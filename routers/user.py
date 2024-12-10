@@ -95,7 +95,7 @@ def me_statistics(user: Annotated[User, Depends(get_current_user)], db: Session 
         total_spent += order.totalPrice
         for item in order.items:
             total_cups += item.amount
-        if order.status != OrderStatus.done or not order.paid:
+        if not order.paid:
             deletable = False
     return UserStatisticsSchema(
         totalOrders=orders_amount,
@@ -111,7 +111,7 @@ def delete_me(user: Annotated[User, Depends(get_current_user)], db: Session = De
         raise HTTPException(status_code=403, detail='Cannot delete blocked user')
     orders = crud.get_orders_by_user(db, user.id)
     for order in orders:
-        if order.status != OrderStatus.done or not order.paid:
+        if not order.paid:
             raise HTTPException(status_code=403, detail='Cannot delete user with active orders')
     crud.delete_user(db, user)
     return True
